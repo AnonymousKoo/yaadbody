@@ -8,6 +8,7 @@ import { validateMealPrepOrderDraft } from "../lib/domain/orders";
 import { summarizeRecipeBatchTest } from "../lib/domain/recipe-validation";
 import { calculatePriceForTargetMargin, calculateUnitMarginPercent, evaluateMealPricing } from "../lib/domain/pricing";
 import { compareSupplierOffers, evaluateSupplierOffer } from "../lib/domain/procurement";
+import { calculateIngredientPurchaseRequirements } from "../lib/domain/purchasing";
 import { calculateIngredientPurchaseEconomics, calculateMeasuredBatchCost, calculateMealCost, summarizeComponentCostEvidence } from "../lib/domain/costing";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
@@ -317,4 +318,54 @@ test("supplier comparison includes package rounding for required demand", () => 
   assert.equal(small?.projectedSpendCents, 2800);
   assert.ok((small?.projectedOverageGrams ?? 0) > 0);
   assert.equal(result.status, "validated-comparison");
+});
+
+
+test("converts cooked component demand back to raw ingredient demand using measured yield", () => {
+  const result = calculateIngredientPurchaseRequirements(
+    [{ componentId: "jerk-chicken", totalGrams: 760 }],
+    components,
+    [{ componentId: "jerk-chicken", costPerCooked100gCents: 125, measuredYieldPercent: 76, confidence: "validated", evidenceRunCount: 3, costSpreadPercent: 2, yieldSpreadPercent: 2 }],
+    [
+      { ingredientId: "chicken", usableOnHandGrams: 0, reservedGrams: 0, safetyStockGrams: 0, confidence: "validated" },
+      { ingredientId: "jerk-seasoning", usableOnHandGrams: 0, reservedGrams: 0, safetyStockGrams: 0, confidence: "validated" },
+      { ingredientId: "oil", usableOnHandGrams: 0, reservedGrams: 0, safetyStockGrams: 0, confidence: "validated" },
+    ],
+  );
+  const chicken = result.requirements.find((item) => item.ingredientId === "chicken");
+  assert.equal(result.status, "validated-requirement");
+  assert.equal(chicken?.grossRequiredGrams, 940);
+});
+
+test("subtracts usable inventory while preserving reservations and safety stock", () => {
+  const result = calculateIngredientPurchaseRequirements(
+    [{ componentId: "jerk-chicken", totalGrams: 760 }],
+    components,
+    [{ componentId: "jerk-chicken", costPerCooked100gCents: 125, measuredYieldPercent: 76, confidence: "validated", evidenceRunCount: 3, costSpreadPercent: 2, yieldSpreadPercent: 2 }],
+    [
+      { ingredientId: "chicken", usableOnHandGrams: 700, reservedGrams: 100, safetyStockGrams: 200, confidence: "validated" },
+      { ingredientId: "jerk-seasoning", usableOnHandGrams: 40, reservedGrams: 0, safetyStockGrams: 10, confidence: "validated" },
+      { ingredientId: "oil", usableOnHandGrams: 20, reservedGrams: 0, safetyStockGrams: 5, confidence: "validated" },
+    ],
+  );
+  const chicken = result.requirements.find((item) => item.ingredientId === "chicken");
+  assert.equal(chicken?.usableAvailableGrams, 600);
+  assert.equal(chicken?.netToBuyGrams, 540);
+});
+
+test("blocks exact purchasing requirements when measured yield evidence is missing", () => {
+  const result = calculateIngredientPurchaseRequirements([{ componentId: "jerk-chicken", totalGrams: 760 }], components, [], []);
+  assert.equal(result.status, "blocked");
+  assert.ok(result.errors.some((error) => error.includes("yield evidence")));
+});
+
+test("blocks exact purchasing requirements when inventory evidence is missing", () => {
+  const result = calculateIngredientPurchaseRequirements(
+    [{ componentId: "jerk-chicken", totalGrams: 760 }],
+    components,
+    [{ componentId: "jerk-chicken", costPerCooked100gCents: 125, measuredYieldPercent: 76, confidence: "validated", evidenceRunCount: 3, costSpreadPercent: 2, yieldSpreadPercent: 2 }],
+    [],
+  );
+  assert.equal(result.status, "blocked");
+  assert.ok(result.errors.some((error) => error.includes("inventory position")));
 });

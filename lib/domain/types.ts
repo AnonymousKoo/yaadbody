@@ -252,3 +252,11 @@ export type SupplierOffer = IngredientPurchaseObservation & {
   qualityStatus: SupplierQualityStatus;
   availability: SupplierAvailability;
 };
+
+export type IngredientInventoryPosition = {
+  ingredientId: string;
+  usableOnHandGrams: number;
+  reservedGrams: number;
+  safetyStockGrams: number;
+  confidence: CostConfidence;
+};
