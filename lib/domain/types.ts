@@ -89,6 +89,12 @@ export type MealPrepOrder = {
   selections: MealSelection[];
 };
 
+export type MealPrepOrderDraft = MealPrepOrder & {
+  status: "draft";
+  fulfillmentMethod: FulfillmentMethod;
+  customerAllergenFilters: Allergen[];
+};
+
 export type CateringServiceLevel = "drop-off" | "buffet-setup" | "full-service";
 
 export type CateringPackage = {

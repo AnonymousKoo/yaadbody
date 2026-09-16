@@ -4,6 +4,7 @@ import { calculateMealSnapshot, calculateWasteSummary } from "../lib/domain/calc
 import { aggregateMealPrepDemand } from "../lib/domain/production";
 import { eligibleMenuForIntake, recommendMealPlan } from "../lib/domain/recommendations";
 import { evaluateCateringInquiry } from "../lib/domain/catering";
+import { validateMealPrepOrderDraft } from "../lib/domain/orders";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
 
@@ -85,4 +86,23 @@ test("marks structured drop-off catering inquiry ready for costing review", () =
   assert.equal(result.route, "catering");
   assert.equal(result.quoteReady, true);
   assert.equal(result.recommendedPackage?.id, "drop-off-signature");
+});
+
+
+test("validates a filled local meal-prep draft without billing or persistence", () => {
+  const result = validateMealPrepOrderDraft({
+    id: "draft-1", status: "draft", planId: "plan-5", fulfillmentMethod: "pickup", customerAllergenFilters: [],
+    selections: [{ menuItemId: "menu-1", portionSize: "balanced", quantity: 3 }, { menuItemId: "menu-2", portionSize: "balanced", quantity: 2 }],
+  }, plans, weeklyMenu);
+  assert.equal(result.valid, true);
+  assert.equal(result.selectedCount, 5);
+});
+
+test("rejects an underfilled meal-prep draft", () => {
+  const result = validateMealPrepOrderDraft({
+    id: "draft-2", status: "draft", planId: "plan-10", fulfillmentMethod: "delivery", customerAllergenFilters: [],
+    selections: [{ menuItemId: "menu-1", portionSize: "lean", quantity: 4 }],
+  }, plans, weeklyMenu);
+  assert.equal(result.valid, false);
+  assert.match(result.errors.join(" "), /exactly 10 meals/);
 });
