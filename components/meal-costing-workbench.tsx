@@ -1,0 +1,56 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { components, ingredients, meals } from "@/fixtures/demo";
+import { estimateComponentCostCents } from "@/lib/domain/calculations";
+import { calculateMealCost } from "@/lib/domain/costing";
+import type { ComponentCostEvidence, CostConfidence, OperatingCostCategory, OperatingCostLine, PackagingCostLine, PortionSize } from "@/lib/domain/types";
+
+const confidenceOptions: CostConfidence[] = ["demo", "measured-once", "validated"];
+const operationalDefaults: Array<[OperatingCostCategory, string]> = [["waste", "Waste allocation"], ["direct-labor", "Direct labor"], ["fulfillment", "Fulfillment"], ["payment-fee", "Payment fee"], ["overhead", "Allocated overhead"]];
+
+export function MealCostingWorkbench() {
+  const [mealId, setMealId] = useState(meals[0].id);
+  const [portionSize, setPortionSize] = useState<PortionSize>("balanced");
+  const meal = meals.find((item) => item.id === mealId) ?? meals[0];
+  const requiredComponents = useMemo(() => meal.portions[portionSize].map((portion) => components.find((item) => item.id === portion.componentId)!), [meal, portionSize]);
+  const [componentOverrides, setComponentOverrides] = useState<Record<string, { cost: number; confidence: CostConfidence; runs: number; costSpread: number; yieldSpread: number }>>({});
+  const [packaging, setPackaging] = useState<PackagingCostLine[]>([
+    { id: "container", name: "Container + lid", costPerMealCents: 0, confidence: "demo" },
+    { id: "label", name: "Brand / nutrition label", costPerMealCents: 0, confidence: "demo" },
+    { id: "seal", name: "Tamper seal", costPerMealCents: 0, confidence: "demo" },
+    { id: "bag", name: "Bag allocation", costPerMealCents: 0, confidence: "demo" },
+  ]);
+  const [operating, setOperating] = useState<OperatingCostLine[]>(operationalDefaults.map(([category, name]) => ({ id: category, name, category, costPerMealCents: 0, confidence: "demo" })));
+
+  const evidence: ComponentCostEvidence[] = requiredComponents.map((component) => {
+    const override = componentOverrides[component.id];
+    return override ? { componentId: component.id, costPerCooked100gCents: Math.round(override.cost * 100), measuredYieldPercent: 0, confidence: override.confidence, evidenceRunCount: override.runs, costSpreadPercent: override.costSpread, yieldSpreadPercent: override.yieldSpread } : { componentId: component.id, costPerCooked100gCents: estimateComponentCostCents(component, ingredients, 100), measuredYieldPercent: 0, confidence: "demo", evidenceRunCount: 0 };
+  });
+  const result = calculateMealCost(meal, portionSize, evidence, packaging, operating);
+
+  const updatePackaging = (id: string, patch: Partial<PackagingCostLine>) => setPackaging((current) => current.map((line) => line.id === id ? { ...line, ...patch } : line));
+  const updateOperating = (id: string, patch: Partial<OperatingCostLine>) => setOperating((current) => current.map((line) => line.id === id ? { ...line, ...patch } : line));
+
+  return <div className="grid gap-8 xl:grid-cols-[1fr_380px]">
+    <section className="space-y-7">
+      <article className="rounded-[1.6rem] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-7">
+        <p className="eyebrow">Meal definition</p><h2 className="mt-2 text-3xl font-black tracking-[-.05em]">Build the full unit economics.</h2>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2"><label><span className="field-label">Meal</span><select className="field-control" value={mealId} onChange={(e) => setMealId(e.target.value)}>{meals.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label><span className="field-label">Portion</span><select className="field-control" value={portionSize} onChange={(e) => setPortionSize(e.target.value as PortionSize)}>{(["lean", "balanced", "build"] as PortionSize[]).map((size) => <option key={size}>{size}</option>)}</select></label></div>
+      </article>
+
+      <article className="rounded-[1.6rem] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-7"><p className="eyebrow">Validated component economics</p><h3 className="mt-2 text-2xl font-black">Food cost by cooked portion</h3><div className="mt-5 space-y-3">{requiredComponents.map((component) => { const override = componentOverrides[component.id]; const demo = estimateComponentCostCents(component, ingredients, 100) / 100; return <div key={component.id} className="rounded-2xl border border-[var(--line)] bg-white p-4"><div className="grid gap-3 md:grid-cols-[1fr_150px_170px_110px]"><div><p className="font-black">{component.name}</p><p className="text-xs text-[var(--ink-muted)]">Demo fallback ${demo.toFixed(2)}/100g</p></div><NumberField label="$/cooked 100g" value={override?.cost ?? demo} onChange={(value) => setComponentOverrides((current) => ({ ...current, [component.id]: { cost: value, confidence: override?.confidence ?? "demo", runs: override?.runs ?? 0, costSpread: override?.costSpread ?? 0, yieldSpread: override?.yieldSpread ?? 0 } }))} /><ConfidenceField value={override?.confidence ?? "demo"} onChange={(confidence) => setComponentOverrides((current) => ({ ...current, [component.id]: { cost: override?.cost ?? demo, confidence, runs: override?.runs ?? 0, costSpread: override?.costSpread ?? 0, yieldSpread: override?.yieldSpread ?? 0 } }))} /><NumberField label="Runs" value={override?.runs ?? 0} onChange={(runs) => setComponentOverrides((current) => ({ ...current, [component.id]: { cost: override?.cost ?? demo, confidence: override?.confidence ?? "demo", runs, costSpread: override?.costSpread ?? 0, yieldSpread: override?.yieldSpread ?? 0 } }))} /></div>{override?.confidence === "validated" && <div className="mt-3 grid gap-3 sm:grid-cols-2"><NumberField label="Cost spread % across runs" value={override.costSpread} onChange={(costSpread) => setComponentOverrides((current) => ({ ...current, [component.id]: { ...override, costSpread } }))} /><NumberField label="Yield spread % across runs" value={override.yieldSpread} onChange={(yieldSpread) => setComponentOverrides((current) => ({ ...current, [component.id]: { ...override, yieldSpread } }))} /></div>}</div>; })}</div></article>
+
+      <article className="rounded-[1.6rem] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-7"><p className="eyebrow">Packaging</p><h3 className="mt-2 text-2xl font-black">Every physical piece belongs in the meal cost.</h3><div className="mt-5 grid gap-3 sm:grid-cols-2">{packaging.map((line) => <CostLine key={line.id} name={line.name} cents={line.costPerMealCents} confidence={line.confidence} onCents={(costPerMealCents) => updatePackaging(line.id, { costPerMealCents })} onConfidence={(confidence) => updatePackaging(line.id, { confidence })} />)}</div></article>
+
+      <article className="rounded-[1.6rem] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-7"><p className="eyebrow">Operating allocation</p><h3 className="mt-2 text-2xl font-black">Food cost is not company cost.</h3><p className="mt-2 text-sm text-[var(--ink-muted)]">These lines keep labor, waste, fulfillment, payment fees, and overhead from disappearing out of the margin calculation.</p><div className="mt-5 grid gap-3 sm:grid-cols-2">{operating.map((line) => <CostLine key={line.id} name={line.name} cents={line.costPerMealCents} confidence={line.confidence} onCents={(costPerMealCents) => updateOperating(line.id, { costPerMealCents })} onConfidence={(confidence) => updateOperating(line.id, { confidence })} />)}</div></article>
+    </section>
+
+    <aside className="h-fit rounded-[1.6rem] bg-[var(--leaf-deep)] p-6 text-white xl:sticky xl:top-6"><p className="text-xs font-black uppercase tracking-[.16em] text-[var(--warm)]">Cost result</p><p className="mt-3 text-3xl font-black capitalize">{result.status.replaceAll("-", " ")}</p><div className="mt-5 space-y-3"><div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4"><p className="text-[10px] font-black uppercase tracking-[.12em] text-white/45">Portion food breakdown</p>{result.componentLines.map((line) => <div key={line.componentId} className="flex justify-between gap-3 text-sm"><span className="text-white/60">{components.find((item) => item.id === line.componentId)?.name} · {line.grams}g</span><span className="font-black">${(line.costCents / 100).toFixed(2)}</span></div>)}</div><SummaryLine label="Food" value={result.foodCostCents} /><SummaryLine label="Packaging" value={result.packagingCostCents} /><SummaryLine label="Operating" value={result.operatingCostCents} /><div className="border-t border-white/15 pt-4"><SummaryLine label="Fully loaded unit cost" value={result.estimatedFullyLoadedCostCents ?? 0} strong /></div></div>{result.trueMealCostCents === null ? <div className="mt-5 rounded-2xl bg-white/10 p-4"><p className="font-black text-[var(--warm)]">Not production truth yet.</p><p className="mt-2 text-xs leading-5 text-white/60">A true meal cost appears only when every component, packaging line, and operating allocation is validated. Demo or one-time measurements remain visible as estimates.</p></div> : <div className="mt-5 rounded-2xl bg-[var(--warm)] p-4 text-[var(--leaf-deep)]"><p className="text-xs font-black uppercase tracking-[.12em]">Validated true meal cost</p><p className="mt-2 text-4xl font-black">${(result.trueMealCostCents / 100).toFixed(2)}</p></div>}{result.errors.length > 0 && <ul className="mt-5 space-y-2 text-xs text-[#ffd8c5]">{result.errors.map((error) => <li key={error}>• {error}</li>)}</ul>}<p className="mt-5 text-xs leading-5 text-white/45">Local worksheet only. No price, invoice, order, or financial record is created.</p></aside>
+  </div>;
+}
+
+function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) { return <label><span className="field-label">{label}</span><input className="field-control" type="number" min="0" step="0.01" value={value} onChange={(e) => onChange(Number(e.target.value))} /></label>; }
+function ConfidenceField({ value, onChange }: { value: CostConfidence; onChange: (value: CostConfidence) => void }) { return <label><span className="field-label">Evidence</span><select className="field-control" value={value} onChange={(e) => onChange(e.target.value as CostConfidence)}>{confidenceOptions.map((item) => <option key={item} value={item}>{item.replace("-", " ")}</option>)}</select></label>; }
+function CostLine({ name, cents, confidence, onCents, onConfidence }: { name: string; cents: number; confidence: CostConfidence; onCents: (value: number) => void; onConfidence: (value: CostConfidence) => void }) { return <div className="rounded-2xl border border-[var(--line)] bg-white p-4"><p className="font-black">{name}</p><div className="mt-3 grid grid-cols-2 gap-2"><NumberField label="$/meal" value={cents / 100} onChange={(value) => onCents(Math.round(value * 100))} /><ConfidenceField value={confidence} onChange={onConfidence} /></div></div>; }
+function SummaryLine({ label, value, strong = false }: { label: string; value: number; strong?: boolean }) { return <div className="flex items-center justify-between gap-4"><span className={strong ? "font-black" : "text-white/60"}>{label}</span><span className={strong ? "text-2xl font-black text-[var(--warm)]" : "font-black"}>${(value / 100).toFixed(2)}</span></div>; }

@@ -117,7 +117,7 @@ export function summarizeComponentCostEvidence(componentId: string, runs: Return
   const yieldSpread = averageYield === 0 ? 0 : (Math.max(...validRuns.map((run) => run.measuredYieldPercent)) - Math.min(...validRuns.map((run) => run.measuredYieldPercent))) / averageYield * 100;
   const allMeasured = validRuns.every((run) => run.confidence !== "demo");
   const confidence: CostConfidence = validRuns.length >= 3 && allMeasured && costSpread <= 10 && yieldSpread <= 10 ? "validated" : allMeasured ? "measured-once" : "demo";
-  return { componentId, costPerCooked100gCents: Math.round(averageCost), measuredYieldPercent: round(averageYield), confidence, evidenceRunCount: validRuns.length };
+  return { componentId, costPerCooked100gCents: Math.round(averageCost), measuredYieldPercent: round(averageYield), confidence, evidenceRunCount: validRuns.length, costSpreadPercent: round(costSpread), yieldSpreadPercent: round(yieldSpread) };
 }
 
 export function calculateMealCost(
@@ -135,6 +135,14 @@ export function calculateMealCost(
       errors.push(`Missing measured cost evidence for component: ${portion.componentId}`);
       return { componentId: portion.componentId, grams: portion.grams, costCents: 0, confidence: "demo" as CostConfidence };
     }
+    if (evidence.confidence === "validated") {
+      const consistencyProven = evidence.evidenceRunCount >= 3
+        && Number.isFinite(evidence.costSpreadPercent)
+        && Number.isFinite(evidence.yieldSpreadPercent)
+        && (evidence.costSpreadPercent ?? Infinity) <= 10
+        && (evidence.yieldSpreadPercent ?? Infinity) <= 10;
+      if (!consistencyProven) errors.push(`Validated component evidence requires 3+ consistent runs for: ${portion.componentId}`);
+    }
     return { componentId: portion.componentId, grams: portion.grams, costCents: Math.round((portion.grams / 100) * evidence.costPerCooked100gCents), confidence: evidence.confidence };
   });
 
@@ -148,10 +156,15 @@ export function calculateMealCost(
   const foodCostCents = componentLines.reduce((sum, line) => sum + line.costCents, 0);
   const packagingCostCents = packaging.reduce((sum, line) => sum + line.costPerMealCents, 0);
   const operatingCostCents = operatingCosts.reduce((sum, line) => sum + line.costPerMealCents, 0);
+  if (packagingCostCents <= 0) errors.push("Packaging cost must be greater than zero before true meal cost can be validated.");
+  for (const requiredPositive of ["direct-labor", "overhead"] as OperatingCostCategory[]) {
+    const total = operatingCosts.filter((line) => line.category === requiredPositive).reduce((sum, line) => sum + line.costPerMealCents, 0);
+    if (total <= 0) errors.push(`${requiredPositive} cost must be greater than zero before true meal cost can be validated.`);
+  }
   const estimatedFullyLoadedCostCents = errors.length ? null : foodCostCents + packagingCostCents + operatingCostCents;
   const confidences = [...componentLines.map((line) => line.confidence), ...packaging.map((line) => line.confidence), ...operatingCosts.map((line) => line.confidence)];
   const confidence = confidences.length ? weakestConfidence(confidences) : "demo";
-  const status = errors.length ? "blocked" : confidence === "validated" ? "validated" : "measured-estimate";
+  const status = errors.length ? "blocked" : confidence === "validated" ? "validated" : confidence === "measured-once" ? "measured-estimate" : "demo-estimate";
   return {
     status,
     errors,

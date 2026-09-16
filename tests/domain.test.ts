@@ -174,7 +174,7 @@ test("requires repeat consistent batches before component cost is validated", ()
 });
 
 test("fails closed on true meal cost when cost evidence is incomplete", () => {
-  const result = calculateMealCost(meals[0], "balanced", [{ componentId: "jerk-chicken", costPerCooked100gCents: 125, measuredYieldPercent: 76, confidence: "validated", evidenceRunCount: 3 }], [{ id: "tray", name: "Tray", costPerMealCents: 32, confidence: "validated" }], []);
+  const result = calculateMealCost(meals[0], "balanced", [{ componentId: "jerk-chicken", costPerCooked100gCents: 125, measuredYieldPercent: 76, confidence: "validated", evidenceRunCount: 3, costSpreadPercent: 3, yieldSpreadPercent: 2 }], [{ id: "tray", name: "Tray", costPerMealCents: 32, confidence: "validated" }], []);
   assert.equal(result.status, "blocked");
   assert.equal(result.trueMealCostCents, null);
   assert.ok(result.errors.some((error) => error.includes("rice-and-peas")));
@@ -182,7 +182,7 @@ test("fails closed on true meal cost when cost evidence is incomplete", () => {
 });
 
 test("produces true meal cost only when all food, packaging, and operating lines are validated", () => {
-  const evidence = meals[0].portions.balanced.map((portion) => ({ componentId: portion.componentId, costPerCooked100gCents: 100, measuredYieldPercent: 90, confidence: "validated" as const, evidenceRunCount: 3 }));
+  const evidence = meals[0].portions.balanced.map((portion) => ({ componentId: portion.componentId, costPerCooked100gCents: 100, measuredYieldPercent: 90, confidence: "validated" as const, evidenceRunCount: 3, costSpreadPercent: 2, yieldSpreadPercent: 2 }));
   const packaging = [{ id: "tray", name: "Tray + label", costPerMealCents: 40, confidence: "validated" as const }];
   const ops = [
     { id: "waste", name: "Waste allocation", category: "waste" as const, costPerMealCents: 20, confidence: "validated" as const },
@@ -195,4 +195,53 @@ test("produces true meal cost only when all food, packaging, and operating lines
   assert.equal(result.status, "validated");
   assert.ok((result.trueMealCostCents ?? 0) > 0);
   assert.equal(result.trueMealCostCents, result.estimatedFullyLoadedCostCents);
+});
+
+
+test("keeps demo economics visibly separate from measured costing", () => {
+  const evidence = meals[0].portions.lean.map((portion) => ({ componentId: portion.componentId, costPerCooked100gCents: 100, measuredYieldPercent: 90, confidence: "demo" as const, evidenceRunCount: 0 }));
+  const packaging = [{ id: "tray", name: "Tray", costPerMealCents: 40, confidence: "demo" as const }];
+  const ops = [
+    { id: "waste", name: "Waste", category: "waste" as const, costPerMealCents: 0, confidence: "demo" as const },
+    { id: "labor", name: "Labor", category: "direct-labor" as const, costPerMealCents: 100, confidence: "demo" as const },
+    { id: "fulfillment", name: "Fulfillment", category: "fulfillment" as const, costPerMealCents: 0, confidence: "demo" as const },
+    { id: "fee", name: "Payment fee", category: "payment-fee" as const, costPerMealCents: 0, confidence: "demo" as const },
+    { id: "overhead", name: "Overhead", category: "overhead" as const, costPerMealCents: 50, confidence: "demo" as const },
+  ];
+  const result = calculateMealCost(meals[0], "lean", evidence, packaging, ops);
+  assert.equal(result.status, "demo-estimate");
+  assert.equal(result.trueMealCostCents, null);
+});
+
+
+test("rejects a validated label without consistency evidence", () => {
+  const evidence = meals[0].portions.balanced.map((portion) => ({ componentId: portion.componentId, costPerCooked100gCents: 100, measuredYieldPercent: 90, confidence: "validated" as const, evidenceRunCount: 3 }));
+  const packaging = [{ id: "tray", name: "Tray", costPerMealCents: 40, confidence: "validated" as const }];
+  const ops = [
+    { id: "waste", name: "Waste", category: "waste" as const, costPerMealCents: 20, confidence: "validated" as const },
+    { id: "labor", name: "Labor", category: "direct-labor" as const, costPerMealCents: 125, confidence: "validated" as const },
+    { id: "fulfillment", name: "Fulfillment", category: "fulfillment" as const, costPerMealCents: 50, confidence: "validated" as const },
+    { id: "fee", name: "Fee", category: "payment-fee" as const, costPerMealCents: 35, confidence: "validated" as const },
+    { id: "overhead", name: "Overhead", category: "overhead" as const, costPerMealCents: 60, confidence: "validated" as const },
+  ];
+  const result = calculateMealCost(meals[0], "balanced", evidence, packaging, ops);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.trueMealCostCents, null);
+  assert.ok(result.errors.some((error) => error.includes("3+ consistent runs")));
+});
+
+
+test("blocks zero labor from being called true cost", () => {
+  const evidence = meals[0].portions.balanced.map((portion) => ({ componentId: portion.componentId, costPerCooked100gCents: 100, measuredYieldPercent: 90, confidence: "validated" as const, evidenceRunCount: 3, costSpreadPercent: 2, yieldSpreadPercent: 2 }));
+  const packaging = [{ id: "tray", name: "Tray", costPerMealCents: 40, confidence: "validated" as const }];
+  const ops = [
+    { id: "waste", name: "Waste", category: "waste" as const, costPerMealCents: 20, confidence: "validated" as const },
+    { id: "labor", name: "Labor", category: "direct-labor" as const, costPerMealCents: 0, confidence: "validated" as const },
+    { id: "fulfillment", name: "Fulfillment", category: "fulfillment" as const, costPerMealCents: 0, confidence: "validated" as const },
+    { id: "fee", name: "Fee", category: "payment-fee" as const, costPerMealCents: 0, confidence: "validated" as const },
+    { id: "overhead", name: "Overhead", category: "overhead" as const, costPerMealCents: 60, confidence: "validated" as const },
+  ];
+  const result = calculateMealCost(meals[0], "balanced", evidence, packaging, ops);
+  assert.equal(result.status, "blocked");
+  assert.ok(result.errors.some((error) => error.includes("direct-labor")));
 });

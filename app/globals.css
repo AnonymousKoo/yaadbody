@@ -54,3 +54,5 @@ button, input, select, textarea { font: inherit; }
   color: var(--foreground);
 }
 .field-control:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px #f7c5aa66; }
+
+.field-label { display:block; margin-bottom:.45rem; color:var(--ink-muted); font-size:.67rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }

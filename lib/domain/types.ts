@@ -199,6 +199,8 @@ export type ComponentCostEvidence = {
   measuredYieldPercent: number;
   confidence: CostConfidence;
   evidenceRunCount: number;
+  costSpreadPercent?: number;
+  yieldSpreadPercent?: number;
 };
 
 export type PackagingCostLine = {
