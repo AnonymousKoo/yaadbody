@@ -5,6 +5,9 @@ import type {
   MealDefinition,
   NutritionLabelEvidence,
   PackingBatchInput,
+  MealPrepOrder,
+  PackingTask,
+  WeeklyMenuItem,
   RecipeCompositionEvidence,
   ShelfLifePolicy,
 } from "./types";
@@ -154,4 +157,45 @@ export function generatePackingLabelRecords(
     : [];
 
   return { status, errors, records, regulatoryStatus: "not-assessed" as const };
+}
+
+
+export function buildPackingTasksFromOrders(
+  orders: MealPrepOrder[],
+  weeklyMenu: WeeklyMenuItem[],
+  meals: MealDefinition[],
+): PackingTask[] {
+  const menuById = new Map(weeklyMenu.map((item) => [item.id, item]));
+  const mealById = new Map(meals.map((meal) => [meal.id, meal]));
+  const grouped = new Map<string, PackingTask & { sourceOrderIds: string[] }>();
+
+  for (const order of orders) {
+    if (!["locked", "in-production"].includes(order.status)) continue;
+    for (const selection of order.selections) {
+      const menuItem = menuById.get(selection.menuItemId);
+      if (!menuItem) throw new Error(`Missing menu item: ${selection.menuItemId}`);
+      const meal = mealById.get(menuItem.mealId);
+      if (!meal) throw new Error(`Missing meal: ${menuItem.mealId}`);
+      if (selection.proteinSubstitutionComponentId && !meal.allowedProteinSubstitutions.some((item) => item.componentId === selection.proteinSubstitutionComponentId)) {
+        throw new Error(`Protein substitution is not allowed: ${selection.proteinSubstitutionComponentId}`);
+      }
+      const key = [meal.id, selection.portionSize, selection.proteinSubstitutionComponentId ?? "base"].join(":");
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.quantity += selection.quantity;
+        if (!existing.sourceOrderIds.includes(order.id)) existing.sourceOrderIds.push(order.id);
+      } else {
+        grouped.set(key, {
+          key,
+          mealId: meal.id,
+          mealName: meal.name,
+          portionSize: selection.portionSize,
+          quantity: selection.quantity,
+          proteinSubstitutionComponentId: selection.proteinSubstitutionComponentId,
+          sourceOrderIds: [order.id],
+        });
+      }
+    }
+  }
+  return [...grouped.values()].sort((a, b) => a.mealName.localeCompare(b.mealName) || a.portionSize.localeCompare(b.portionSize));
 }

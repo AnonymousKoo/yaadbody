@@ -9,7 +9,7 @@ import { summarizeRecipeBatchTest } from "../lib/domain/recipe-validation";
 import { calculatePriceForTargetMargin, calculateUnitMarginPercent, evaluateMealPricing } from "../lib/domain/pricing";
 import { compareSupplierOffers, evaluateSupplierOffer } from "../lib/domain/procurement";
 import { calculateIngredientPurchaseRequirements } from "../lib/domain/purchasing";
-import { buildIngredientAndAllergenStatement, generatePackingLabelRecords } from "../lib/domain/packing";
+import { buildIngredientAndAllergenStatement, buildPackingTasksFromOrders, generatePackingLabelRecords } from "../lib/domain/packing";
 import { calculateIngredientPurchaseEconomics, calculateMeasuredBatchCost, calculateMealCost, summarizeComponentCostEvidence } from "../lib/domain/costing";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
@@ -444,4 +444,15 @@ test("validated packing evidence requires recorded sources", () => {
   );
   assert.equal(result.status, "proof-only");
   assert.ok(result.errors.filter((error) => error.includes("recorded")).length >= 3);
+});
+
+
+test("builds packing tasks directly from locked order demand", () => {
+  const tasks = buildPackingTasksFromOrders(demoOrders, weeklyMenu, meals);
+  assert.equal(tasks.reduce((sum, task) => sum + task.quantity, 0), 15);
+  assert.equal(tasks.length, 7);
+  const substituted = tasks.find((task) => task.proteinSubstitutionComponentId === "garlic-shrimp");
+  assert.equal(substituted?.mealId, "yaad-jerk-chicken");
+  assert.equal(substituted?.quantity, 1);
+  assert.deepEqual(substituted?.sourceOrderIds, ["order-001"]);
 });

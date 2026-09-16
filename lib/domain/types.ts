@@ -315,3 +315,14 @@ export type PackingBatchInput = {
   packedOn: string;
   proteinSubstitutionComponentId?: string;
 };
+
+
+export type PackingTask = {
+  key: string;
+  mealId: string;
+  mealName: string;
+  portionSize: PortionSize;
+  quantity: number;
+  proteinSubstitutionComponentId?: string;
+  sourceOrderIds: string[];
+};
