@@ -1,0 +1,12 @@
+{
+  "name": "yaadbody",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:domain": "tsx --test tests/domain.test.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
+}
