@@ -165,7 +165,8 @@ export type RecipeBatchTest = {
 };
 
 
-export type CostConfidence = "demo" | "measured-once" | "validated";
+export type EvidenceConfidence = "demo" | "measured-once" | "validated";
+export type CostConfidence = EvidenceConfidence;
 export type MassUnit = "g" | "kg" | "oz" | "lb";
 
 export type IngredientPurchaseObservation = {
@@ -259,4 +260,56 @@ export type IngredientInventoryPosition = {
   reservedGrams: number;
   safetyStockGrams: number;
   confidence: CostConfidence;
+};
+
+
+export type NutritionFactsPanel = {
+  servingSizeGrams: number;
+  calories: number;
+  totalFatGrams: number;
+  saturatedFatGrams: number;
+  transFatGrams: number;
+  cholesterolMg: number;
+  sodiumMg: number;
+  totalCarbohydrateGrams: number;
+  dietaryFiberGrams: number;
+  totalSugarsGrams: number;
+  addedSugarsGrams: number;
+  proteinGrams: number;
+  vitaminDMcg: number;
+  calciumMg: number;
+  ironMg: number;
+  potassiumMg: number;
+};
+
+export type NutritionLabelEvidence = {
+  mealId: string;
+  portionSize: PortionSize;
+  panel: NutritionFactsPanel;
+  confidence: EvidenceConfidence;
+  evidenceSource?: string;
+};
+
+export type RecipeCompositionEvidence = {
+  mealId: string;
+  portionSize: PortionSize;
+  confidence: EvidenceConfidence;
+  evidenceRunCount: number;
+};
+
+export type ShelfLifePolicy = {
+  id: string;
+  storage: "refrigerated" | "frozen";
+  shelfLifeDays: number;
+  confidence: EvidenceConfidence;
+  evidenceRunCount: number;
+};
+
+export type PackingBatchInput = {
+  batchId: string;
+  mealId: string;
+  portionSize: PortionSize;
+  quantity: number;
+  packedOn: string;
+  proteinSubstitutionComponentId?: string;
 };

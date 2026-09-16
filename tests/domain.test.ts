@@ -9,6 +9,7 @@ import { summarizeRecipeBatchTest } from "../lib/domain/recipe-validation";
 import { calculatePriceForTargetMargin, calculateUnitMarginPercent, evaluateMealPricing } from "../lib/domain/pricing";
 import { compareSupplierOffers, evaluateSupplierOffer } from "../lib/domain/procurement";
 import { calculateIngredientPurchaseRequirements } from "../lib/domain/purchasing";
+import { buildIngredientAndAllergenStatement, generatePackingLabelRecords } from "../lib/domain/packing";
 import { calculateIngredientPurchaseEconomics, calculateMeasuredBatchCost, calculateMealCost, summarizeComponentCostEvidence } from "../lib/domain/costing";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
@@ -384,4 +385,50 @@ test("rejects validated purchasing yield without repeat-run evidence", () => {
   );
   assert.equal(result.status, "blocked");
   assert.ok(result.errors.some((error) => error.includes("3+ consistent runs")));
+});
+
+
+test("derives ingredient order and allergen source from the packed meal recipe", () => {
+  const statement = buildIngredientAndAllergenStatement(meals[4], "balanced", components, ingredients);
+  assert.equal(statement.orderedIngredients[0], "Cod");
+  assert.ok(statement.ingredientStatement.includes("Kidney beans"));
+  assert.equal(statement.containsStatement, "Contains: Fish (Cod)");
+});
+
+test("protein substitution changes the packing allergen declaration", () => {
+  const statement = buildIngredientAndAllergenStatement(meals[0], "balanced", components, ingredients, "garlic-shrimp");
+  assert.ok(statement.containsStatement?.includes("Crustacean Shellfish (Shrimp)"));
+  assert.ok(statement.allergens.includes("crustacean-shellfish"));
+});
+
+test("packing labels stay proof-only while nutrition or shelf-life evidence is unvalidated", () => {
+  const result = generatePackingLabelRecords(
+    { batchId: "YB-20260916-001", mealId: meals[0].id, portionSize: "balanced", quantity: 2, packedOn: "2026-09-16" },
+    meals, components, ingredients,
+    { mealId: meals[0].id, portionSize: "balanced", confidence: "demo", panel: { servingSizeGrams: 430, calories: 600, totalFatGrams: 15, saturatedFatGrams: 4, transFatGrams: 0, cholesterolMg: 120, sodiumMg: 800, totalCarbohydrateGrams: 55, dietaryFiberGrams: 6, totalSugarsGrams: 5, addedSugarsGrams: 0, proteinGrams: 50, vitaminDMcg: 0, calciumMg: 80, ironMg: 3, potassiumMg: 700 } },
+    { mealId: meals[0].id, portionSize: "balanced", confidence: "validated", evidenceRunCount: 3 },
+    { id: "cold-4", storage: "refrigerated", shelfLifeDays: 4, confidence: "measured-once", evidenceRunCount: 1 },
+  );
+  assert.equal(result.status, "proof-only");
+  assert.equal(result.records.length, 2);
+  assert.equal(result.records[0].regulatoryStatus, "not-assessed");
+  assert.ok(result.errors.some((error) => error.includes("Nutrition Facts")));
+  assert.ok(result.errors.some((error) => error.includes("Shelf-life")));
+});
+
+test("creates sequential operational label records only from validated evidence", () => {
+  const result = generatePackingLabelRecords(
+    { batchId: "YB-20260916-002", mealId: meals[0].id, portionSize: "balanced", quantity: 3, packedOn: "2026-09-16" },
+    meals, components, ingredients,
+    { mealId: meals[0].id, portionSize: "balanced", confidence: "validated", evidenceSource: "validated recipe analysis", panel: { servingSizeGrams: 430, calories: 600, totalFatGrams: 15, saturatedFatGrams: 4, transFatGrams: 0, cholesterolMg: 120, sodiumMg: 800, totalCarbohydrateGrams: 55, dietaryFiberGrams: 6, totalSugarsGrams: 5, addedSugarsGrams: 0, proteinGrams: 50, vitaminDMcg: 0, calciumMg: 80, ironMg: 3, potassiumMg: 700 } },
+    { mealId: meals[0].id, portionSize: "balanced", confidence: "validated", evidenceRunCount: 3 },
+    { id: "cold-4", storage: "refrigerated", shelfLifeDays: 4, confidence: "validated", evidenceRunCount: 3 },
+  );
+  assert.equal(result.status, "operational-label-ready");
+  assert.equal(result.records.length, 3);
+  assert.equal(result.records[0].traceCode, "YB-20260916-002-001");
+  assert.equal(result.records[2].traceCode, "YB-20260916-002-003");
+  assert.equal(result.records[0].useByDate, "2026-09-20");
+  assert.equal(result.records[0].advisoryAllergenStatement, null);
+  assert.equal(result.regulatoryStatus, "not-assessed");
 });
