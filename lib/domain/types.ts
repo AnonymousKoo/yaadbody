@@ -1,5 +1,6 @@
 export type MoneyCents = number;
 export type PortionSize = "lean" | "balanced" | "build";
+export type MealCount = 5 | 10 | 14 | 20;
 export type Allergen =
   | "milk"
   | "egg"
@@ -70,7 +71,7 @@ export type WeeklyMenuItem = {
 
 export type MealPlan = {
   id: string;
-  mealCount: 5 | 10 | 14 | 20;
+  mealCount: MealCount;
   label: string;
 };
 
@@ -109,6 +110,43 @@ export type CateringEvent = {
   serviceLevel: CateringServiceLevel;
   packageId: string;
   selectedComponentIds: string[];
+};
+
+
+export type CustomerGoal =
+  | "fat-loss"
+  | "healthy-eating"
+  | "maintain"
+  | "muscle"
+  | "save-time";
+
+export type FulfillmentMethod = "pickup" | "delivery";
+
+export type CustomerMealIntake = {
+  goal: CustomerGoal;
+  desiredMealCount: MealCount;
+  preferredCuisines: MealDefinition["cuisine"][];
+  allergens: Allergen[];
+  dislikedProteinComponentIds: string[];
+  fulfillmentMethod: FulfillmentMethod;
+};
+
+export type CateringEventType =
+  | "birthday"
+  | "corporate"
+  | "graduation"
+  | "wedding"
+  | "family-gathering"
+  | "other";
+
+export type CateringInquiry = {
+  eventType: CateringEventType;
+  eventDate: string;
+  guestCount: number;
+  serviceLevel: CateringServiceLevel;
+  location: string;
+  contactEmail: string;
+  dietaryNotes: string;
 };
 
 export type WasteReason =
