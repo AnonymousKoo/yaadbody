@@ -295,6 +295,7 @@ export type RecipeCompositionEvidence = {
   portionSize: PortionSize;
   confidence: EvidenceConfidence;
   evidenceRunCount: number;
+  evidenceSource?: string;
 };
 
 export type ShelfLifePolicy = {
@@ -303,6 +304,7 @@ export type ShelfLifePolicy = {
   shelfLifeDays: number;
   confidence: EvidenceConfidence;
   evidenceRunCount: number;
+  evidenceSource?: string;
 };
 
 export type PackingBatchInput = {

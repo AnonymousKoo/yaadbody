@@ -96,16 +96,29 @@ export function generatePackingLabelRecords(
     errors.push("Matching full Nutrition Facts evidence is required.");
   } else if (nutritionEvidence.confidence !== "validated") {
     errors.push("Nutrition Facts evidence must be validated before production labeling.");
+  } else if (!nutritionEvidence.evidenceSource?.trim()) {
+    errors.push("Validated Nutrition Facts evidence requires a recorded source.");
+  }
+  if (nutritionEvidence) {
+    const panelValues = Object.entries(nutritionEvidence.panel);
+    for (const [field, value] of panelValues) {
+      if (!Number.isFinite(value) || value < 0) errors.push(`Nutrition field ${field} must be a non-negative number.`);
+    }
+    if (nutritionEvidence.panel.servingSizeGrams <= 0) errors.push("Nutrition serving size must be greater than zero.");
   }
   if (!recipeEvidence || recipeEvidence.mealId !== input.mealId || recipeEvidence.portionSize !== input.portionSize) {
     errors.push("Matching recipe composition evidence is required.");
   } else if (recipeEvidence.confidence !== "validated" || recipeEvidence.evidenceRunCount < 3) {
     errors.push("Recipe composition requires validated evidence with 3+ runs.");
+  } else if (!recipeEvidence.evidenceSource?.trim()) {
+    errors.push("Validated recipe composition requires a recorded evidence source.");
   }
   if (!shelfLife) {
     errors.push("Shelf-life policy is required.");
   } else if (shelfLife.confidence !== "validated" || shelfLife.evidenceRunCount < 3 || !Number.isInteger(shelfLife.shelfLifeDays) || shelfLife.shelfLifeDays <= 0) {
     errors.push("Shelf-life policy requires a positive validated duration with 3+ evidence runs.");
+  } else if (!shelfLife.evidenceSource?.trim()) {
+    errors.push("Validated shelf-life policy requires a recorded evidence source.");
   }
 
   let statement: ReturnType<typeof buildIngredientAndAllergenStatement> | null = null;

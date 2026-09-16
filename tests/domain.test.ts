@@ -421,8 +421,8 @@ test("creates sequential operational label records only from validated evidence"
     { batchId: "YB-20260916-002", mealId: meals[0].id, portionSize: "balanced", quantity: 3, packedOn: "2026-09-16" },
     meals, components, ingredients,
     { mealId: meals[0].id, portionSize: "balanced", confidence: "validated", evidenceSource: "validated recipe analysis", panel: { servingSizeGrams: 430, calories: 600, totalFatGrams: 15, saturatedFatGrams: 4, transFatGrams: 0, cholesterolMg: 120, sodiumMg: 800, totalCarbohydrateGrams: 55, dietaryFiberGrams: 6, totalSugarsGrams: 5, addedSugarsGrams: 0, proteinGrams: 50, vitaminDMcg: 0, calciumMg: 80, ironMg: 3, potassiumMg: 700 } },
-    { mealId: meals[0].id, portionSize: "balanced", confidence: "validated", evidenceRunCount: 3 },
-    { id: "cold-4", storage: "refrigerated", shelfLifeDays: 4, confidence: "validated", evidenceRunCount: 3 },
+    { mealId: meals[0].id, portionSize: "balanced", confidence: "validated", evidenceRunCount: 3, evidenceSource: "standardized recipe batch records" },
+    { id: "cold-4", storage: "refrigerated", shelfLifeDays: 4, confidence: "validated", evidenceRunCount: 3, evidenceSource: "validated refrigerated shelf-life study" },
   );
   assert.equal(result.status, "operational-label-ready");
   assert.equal(result.records.length, 3);
@@ -431,4 +431,17 @@ test("creates sequential operational label records only from validated evidence"
   assert.equal(result.records[0].useByDate, "2026-09-20");
   assert.equal(result.records[0].advisoryAllergenStatement, null);
   assert.equal(result.regulatoryStatus, "not-assessed");
+});
+
+
+test("validated packing evidence requires recorded sources", () => {
+  const result = generatePackingLabelRecords(
+    { batchId: "YB-20260916-003", mealId: meals[0].id, portionSize: "balanced", quantity: 1, packedOn: "2026-09-16" },
+    meals, components, ingredients,
+    { mealId: meals[0].id, portionSize: "balanced", confidence: "validated", panel: { servingSizeGrams: 430, calories: 600, totalFatGrams: 15, saturatedFatGrams: 4, transFatGrams: 0, cholesterolMg: 120, sodiumMg: 800, totalCarbohydrateGrams: 55, dietaryFiberGrams: 6, totalSugarsGrams: 5, addedSugarsGrams: 0, proteinGrams: 50, vitaminDMcg: 0, calciumMg: 80, ironMg: 3, potassiumMg: 700 } },
+    { mealId: meals[0].id, portionSize: "balanced", confidence: "validated", evidenceRunCount: 3 },
+    { id: "cold-4", storage: "refrigerated", shelfLifeDays: 4, confidence: "validated", evidenceRunCount: 3 },
+  );
+  assert.equal(result.status, "proof-only");
+  assert.ok(result.errors.filter((error) => error.includes("recorded")).length >= 3);
 });
