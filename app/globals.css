@@ -43,3 +43,14 @@ button, input, select, textarea { font: inherit; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+.field-control {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: white;
+  padding: .8rem .9rem;
+  color: var(--foreground);
+}
+.field-control:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px #f7c5aa66; }

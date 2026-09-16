@@ -18,7 +18,7 @@ export default function Home() {
             <h1 className="text-balance mt-5 max-w-3xl text-5xl font-black leading-[.95] tracking-[-.07em] sm:text-6xl lg:text-7xl">Healthy food you actually look forward to eating.</h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--ink-muted)]">YaadBody handles the week with macro-aware meal prep and handles the occasion with full-flavor catering — one kitchen, one operating standard.</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/menu" className="rounded-full bg-[var(--brand)] px-6 py-3 font-black text-white">Build my week</Link>
+              <Link href="/start" className="rounded-full bg-[var(--brand)] px-6 py-3 font-black text-white">Find my plan</Link>
               <Link href="/catering" className="rounded-full border border-[var(--line)] bg-white px-6 py-3 font-black">Plan an event</Link>
             </div>
           </div>

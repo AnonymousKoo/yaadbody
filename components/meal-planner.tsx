@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { calculateMealSnapshot } from "@/lib/domain/calculations";
-import type { PortionSize } from "@/lib/domain/types";
+import type { Allergen, FulfillmentMethod, PortionSize } from "@/lib/domain/types";
 import { components, ingredients, meals, plans, weeklyMenu } from "@/fixtures/demo";
 
 const portionCopy: Record<PortionSize, string> = {
@@ -12,17 +13,28 @@ const portionCopy: Record<PortionSize, string> = {
 };
 
 export function MealPlanner() {
-  const [planId, setPlanId] = useState("plan-10");
-  const [portionSize, setPortionSize] = useState<PortionSize>("balanced");
+  const searchParams = useSearchParams();
+  const requestedPlan = searchParams.get("plan");
+  const requestedPortion = searchParams.get("portion");
+  const requestedFulfillment = searchParams.get("fulfillment");
+  const allergenFilters = (searchParams.get("allergens")?.split(",").filter(Boolean) ?? []) as Allergen[];
+  const initialPlanId = plans.some((item) => item.id === requestedPlan) ? requestedPlan! : "plan-10";
+  const initialPortion = (["lean", "balanced", "build"] as string[]).includes(requestedPortion ?? "") ? requestedPortion as PortionSize : "balanced";
+  const fulfillment = (["pickup", "delivery"] as string[]).includes(requestedFulfillment ?? "") ? requestedFulfillment as FulfillmentMethod : undefined;
+  const [planId, setPlanId] = useState(initialPlanId);
+  const [portionSize, setPortionSize] = useState<PortionSize>(initialPortion);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const plan = plans.find((item) => item.id === planId) ?? plans[1];
   const selectedCount = Object.values(counts).reduce((sum, count) => sum + count, 0);
   const remaining = plan.mealCount - selectedCount;
 
-  const menu = useMemo(
-    () => weeklyMenu.map((item) => ({ item, meal: meals.find((meal) => meal.id === item.mealId)! })),
-    [],
-  );
+  const menu = weeklyMenu
+    .map((item) => ({ item, meal: meals.find((meal) => meal.id === item.mealId)! }))
+    .filter(({ meal }) => {
+      if (allergenFilters.length === 0) return true;
+      const snapshot = calculateMealSnapshot(meal, portionSize, components, ingredients);
+      return !snapshot.allergens.some((allergen) => allergenFilters.includes(allergen));
+    });
 
   const changeCount = (menuItemId: string, delta: number) => {
     setCounts((current) => {
@@ -60,6 +72,8 @@ export function MealPlanner() {
             </button>
           ))}
         </div>
+
+        {(fulfillment || allergenFilters.length > 0) && <div className="mt-7 rounded-2xl border border-[var(--line)] bg-white p-4 text-sm"><span className="font-black">From your intake:</span>{fulfillment && <span className="ml-2 capitalize">{fulfillment}</span>}{allergenFilters.length > 0 && <span className="ml-2 text-[var(--ink-muted)]">· hiding recipes listing {allergenFilters.join(", ")}</span>}<p className="mt-1 text-xs text-[var(--ink-muted)]">Displayed-recipe filtering is not a cross-contact guarantee.</p></div>}
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           {menu.map(({ item, meal }) => {

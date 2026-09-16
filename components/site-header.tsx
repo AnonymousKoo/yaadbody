@@ -12,11 +12,12 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav className="hidden items-center gap-7 text-sm font-bold md:flex" aria-label="Primary navigation">
+          <Link href="/start" className="hover:text-[var(--brand-deep)]">Find My Plan</Link>
           <Link href="/menu" className="hover:text-[var(--brand-deep)]">Weekly Menu</Link>
           <Link href="/catering" className="hover:text-[var(--brand-deep)]">Catering</Link>
           <Link href="/ops" className="text-[var(--ink-muted)] hover:text-[var(--brand-deep)]">Ops Prototype</Link>
         </nav>
-        <Link href="/menu" className="rounded-full bg-[var(--leaf-deep)] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--leaf)]">
+        <Link href="/start" className="rounded-full bg-[var(--leaf-deep)] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--leaf)]">
           Build my week
         </Link>
       </div>
