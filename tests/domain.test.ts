@@ -6,6 +6,7 @@ import { eligibleMenuForIntake, recommendMealPlan } from "../lib/domain/recommen
 import { evaluateCateringInquiry } from "../lib/domain/catering";
 import { validateMealPrepOrderDraft } from "../lib/domain/orders";
 import { summarizeRecipeBatchTest } from "../lib/domain/recipe-validation";
+import { calculateIngredientPurchaseEconomics, calculateMeasuredBatchCost, calculateMealCost, summarizeComponentCostEvidence } from "../lib/domain/costing";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
 
@@ -136,4 +137,62 @@ test("allows cooked output above raw input for water-absorbing components", () =
   assert.equal(summary.valid, true);
   assert.equal(summary.yieldPercent, 280);
   assert.equal(summary.massChangePercent, 180);
+});
+
+
+test("derives usable ingredient cost from a real package purchase", () => {
+  const result = calculateIngredientPurchaseEconomics({ ingredientId: "chicken", packageQuantity: 5, packageUnit: "lb", packagePriceCents: 1699, usableYieldPercent: 94, confidence: "measured-once" });
+  assert.equal(result.valid, true);
+  assert.ok(result.usableGrams > 2100);
+  assert.ok(result.costPerUsableGramCents > result.costPerPurchasedGramCents);
+});
+
+test("derives batch cost from ingredient usage and purchase evidence", () => {
+  const result = calculateMeasuredBatchCost({
+    id: "batch-1", componentId: "jerk-chicken", rawInputGrams: 1000, cookedOutputGrams: 760, expectedYieldPercent: 78,
+    ingredientUsage: [{ ingredientId: "chicken", gramsUsed: 940 }, { ingredientId: "jerk-seasoning", gramsUsed: 40 }, { ingredientId: "oil", gramsUsed: 20 }],
+    purchases: [
+      { ingredientId: "chicken", packageQuantity: 5, packageUnit: "lb", packagePriceCents: 1699, usableYieldPercent: 94, confidence: "measured-once" },
+      { ingredientId: "jerk-seasoning", packageQuantity: 16, packageUnit: "oz", packagePriceCents: 899, usableYieldPercent: 100, confidence: "measured-once" },
+      { ingredientId: "oil", packageQuantity: 48, packageUnit: "oz", packagePriceCents: 1099, usableYieldPercent: 100, confidence: "measured-once" },
+    ],
+  });
+  assert.equal(result.valid, true);
+  assert.equal(result.measuredYieldPercent, 76);
+  assert.equal(result.yieldVariancePercent, -2);
+  assert.ok(result.totalBatchIngredientCostCents > 0);
+  assert.equal(result.confidence, "measured-once");
+});
+
+test("requires repeat consistent batches before component cost is validated", () => {
+  const makeRun = (cost: number, yieldPercent: number) => ({ valid: true, errors: [], ingredientCosts: [], totalBatchIngredientCostCents: 1000, measuredYieldPercent: yieldPercent, yieldVariancePercent: 0, costPerCooked100gCents: cost, confidence: "measured-once" as const });
+  const one = summarizeComponentCostEvidence("jerk-chicken", [makeRun(125, 76)]);
+  const three = summarizeComponentCostEvidence("jerk-chicken", [makeRun(124, 76), makeRun(126, 77), makeRun(125, 75)]);
+  assert.equal(one?.confidence, "measured-once");
+  assert.equal(three?.confidence, "validated");
+  assert.equal(three?.evidenceRunCount, 3);
+});
+
+test("fails closed on true meal cost when cost evidence is incomplete", () => {
+  const result = calculateMealCost(meals[0], "balanced", [{ componentId: "jerk-chicken", costPerCooked100gCents: 125, measuredYieldPercent: 76, confidence: "validated", evidenceRunCount: 3 }], [{ id: "tray", name: "Tray", costPerMealCents: 32, confidence: "validated" }], []);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.trueMealCostCents, null);
+  assert.ok(result.errors.some((error) => error.includes("rice-and-peas")));
+  assert.ok(result.errors.some((error) => error.includes("direct-labor")));
+});
+
+test("produces true meal cost only when all food, packaging, and operating lines are validated", () => {
+  const evidence = meals[0].portions.balanced.map((portion) => ({ componentId: portion.componentId, costPerCooked100gCents: 100, measuredYieldPercent: 90, confidence: "validated" as const, evidenceRunCount: 3 }));
+  const packaging = [{ id: "tray", name: "Tray + label", costPerMealCents: 40, confidence: "validated" as const }];
+  const ops = [
+    { id: "waste", name: "Waste allocation", category: "waste" as const, costPerMealCents: 20, confidence: "validated" as const },
+    { id: "labor", name: "Direct labor", category: "direct-labor" as const, costPerMealCents: 125, confidence: "validated" as const },
+    { id: "fulfillment", name: "Fulfillment", category: "fulfillment" as const, costPerMealCents: 50, confidence: "validated" as const },
+    { id: "fee", name: "Payment fee", category: "payment-fee" as const, costPerMealCents: 35, confidence: "validated" as const },
+    { id: "overhead", name: "Allocated overhead", category: "overhead" as const, costPerMealCents: 60, confidence: "validated" as const },
+  ];
+  const result = calculateMealCost(meals[0], "balanced", evidence, packaging, ops);
+  assert.equal(result.status, "validated");
+  assert.ok((result.trueMealCostCents ?? 0) > 0);
+  assert.equal(result.trueMealCostCents, result.estimatedFullyLoadedCostCents);
 });

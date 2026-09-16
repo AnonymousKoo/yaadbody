@@ -164,6 +164,60 @@ export type RecipeBatchTest = {
   notes?: string;
 };
 
+
+export type CostConfidence = "demo" | "measured-once" | "validated";
+export type MassUnit = "g" | "kg" | "oz" | "lb";
+
+export type IngredientPurchaseObservation = {
+  ingredientId: string;
+  packageQuantity: number;
+  packageUnit: MassUnit;
+  packagePriceCents: MoneyCents;
+  usableYieldPercent: number;
+  confidence: CostConfidence;
+  sourceLabel?: string;
+};
+
+export type BatchIngredientUsage = {
+  ingredientId: string;
+  gramsUsed: number;
+};
+
+export type MeasuredBatchCostInput = {
+  id: string;
+  componentId: string;
+  rawInputGrams: number;
+  cookedOutputGrams: number;
+  expectedYieldPercent: number;
+  ingredientUsage: BatchIngredientUsage[];
+  purchases: IngredientPurchaseObservation[];
+};
+
+export type ComponentCostEvidence = {
+  componentId: string;
+  costPerCooked100gCents: MoneyCents;
+  measuredYieldPercent: number;
+  confidence: CostConfidence;
+  evidenceRunCount: number;
+};
+
+export type PackagingCostLine = {
+  id: string;
+  name: string;
+  costPerMealCents: MoneyCents;
+  confidence: CostConfidence;
+};
+
+export type OperatingCostCategory = "waste" | "direct-labor" | "fulfillment" | "payment-fee" | "overhead";
+
+export type OperatingCostLine = {
+  id: string;
+  name: string;
+  category: OperatingCostCategory;
+  costPerMealCents: MoneyCents;
+  confidence: CostConfidence;
+};
+
 export type WasteReason =
   | "prep-loss"
   | "cooking-loss"
