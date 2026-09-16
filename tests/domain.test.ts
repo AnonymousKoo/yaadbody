@@ -7,6 +7,7 @@ import { evaluateCateringInquiry } from "../lib/domain/catering";
 import { validateMealPrepOrderDraft } from "../lib/domain/orders";
 import { summarizeRecipeBatchTest } from "../lib/domain/recipe-validation";
 import { calculatePriceForTargetMargin, calculateUnitMarginPercent, evaluateMealPricing } from "../lib/domain/pricing";
+import { compareSupplierOffers, evaluateSupplierOffer } from "../lib/domain/procurement";
 import { calculateIngredientPurchaseEconomics, calculateMeasuredBatchCost, calculateMealCost, summarizeComponentCostEvidence } from "../lib/domain/costing";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
@@ -274,4 +275,46 @@ test("blocks pricing when the cost basis is blocked", () => {
   assert.equal(result.status, "blocked");
   assert.equal(result.recommendedPriceCents, null);
   assert.ok(result.errors.some((error) => error.includes("cost basis")));
+});
+
+
+test("normalizes supplier offers to landed usable cost", () => {
+  const result = evaluateSupplierOffer({ id: "a", supplierName: "Supplier A", ingredientId: "chicken", packageQuantity: 10, packageUnit: "lb", packagePriceCents: 3000, allocatedDeliveryCostCents: 200, usableYieldPercent: 80, qualityStatus: "approved", availability: "in-stock", confidence: "measured-once" }, 3000);
+  assert.equal(result.eligible, true);
+  assert.ok(result.landedCostPerUsableGramCents > 0);
+  assert.ok(result.usableGramsPerPackage < result.purchasedGramsPerPackage);
+  assert.equal(result.packagesRequired, 1);
+});
+
+test("excludes a cheaper supplier that fails the quality gate", () => {
+  const offers = [
+    { id: "cheap", supplierName: "Cheap", ingredientId: "chicken", packageQuantity: 5, packageUnit: "lb" as const, packagePriceCents: 900, allocatedDeliveryCostCents: 0, usableYieldPercent: 95, qualityStatus: "rejected" as const, availability: "in-stock" as const, confidence: "validated" as const },
+    { id: "approved", supplierName: "Approved", ingredientId: "chicken", packageQuantity: 5, packageUnit: "lb" as const, packagePriceCents: 1500, allocatedDeliveryCostCents: 0, usableYieldPercent: 95, qualityStatus: "approved" as const, availability: "in-stock" as const, confidence: "validated" as const },
+  ];
+  const result = compareSupplierOffers(offers, "chicken", 1500);
+  assert.equal(result.lowestCostEligibleOffer?.offerId, "approved");
+  assert.equal(result.evaluated.find((offer) => offer.offerId === "cheap")?.eligible, false);
+});
+
+test("usable yield can make the higher sticker price the lower effective cost", () => {
+  const offers = [
+    { id: "low-sticker", supplierName: "Low Sticker", ingredientId: "chicken", packageQuantity: 5, packageUnit: "lb" as const, packagePriceCents: 1300, allocatedDeliveryCostCents: 0, usableYieldPercent: 60, qualityStatus: "approved" as const, availability: "in-stock" as const, confidence: "measured-once" as const },
+    { id: "better-yield", supplierName: "Better Yield", ingredientId: "chicken", packageQuantity: 5, packageUnit: "lb" as const, packagePriceCents: 1600, allocatedDeliveryCostCents: 0, usableYieldPercent: 95, qualityStatus: "approved" as const, availability: "in-stock" as const, confidence: "measured-once" as const },
+  ];
+  const result = compareSupplierOffers(offers, "chicken");
+  assert.equal(result.lowestCostEligibleOffer?.offerId, "better-yield");
+});
+
+test("supplier comparison includes package rounding for required demand", () => {
+  const offers = [
+    { id: "small", supplierName: "Small Packs", ingredientId: "chicken", packageQuantity: 2, packageUnit: "lb" as const, packagePriceCents: 700, allocatedDeliveryCostCents: 0, usableYieldPercent: 100, qualityStatus: "approved" as const, availability: "in-stock" as const, confidence: "validated" as const },
+    { id: "bulk", supplierName: "Bulk", ingredientId: "chicken", packageQuantity: 10, packageUnit: "lb" as const, packagePriceCents: 3000, allocatedDeliveryCostCents: 0, usableYieldPercent: 100, qualityStatus: "approved" as const, availability: "in-stock" as const, confidence: "validated" as const },
+  ];
+  const result = compareSupplierOffers(offers, "chicken", 3000);
+  assert.equal(result.lowestCostEligibleOffer?.offerId, "small");
+  const small = result.evaluated.find((offer) => offer.offerId === "small");
+  assert.equal(small?.packagesRequired, 4);
+  assert.equal(small?.projectedSpendCents, 2800);
+  assert.ok((small?.projectedOverageGrams ?? 0) > 0);
+  assert.equal(result.status, "validated-comparison");
 });

@@ -241,3 +241,14 @@ export type WasteEntry = {
   estimatedCostCents: MoneyCents;
   avoidable: boolean;
 };
+
+export type SupplierQualityStatus = "unverified" | "approved" | "preferred" | "rejected";
+export type SupplierAvailability = "in-stock" | "limited" | "out-of-stock";
+
+export type SupplierOffer = IngredientPurchaseObservation & {
+  id: string;
+  supplierName: string;
+  allocatedDeliveryCostCents: MoneyCents;
+  qualityStatus: SupplierQualityStatus;
+  availability: SupplierAvailability;
+};
