@@ -6,6 +6,7 @@ import { eligibleMenuForIntake, recommendMealPlan } from "../lib/domain/recommen
 import { evaluateCateringInquiry } from "../lib/domain/catering";
 import { validateMealPrepOrderDraft } from "../lib/domain/orders";
 import { summarizeRecipeBatchTest } from "../lib/domain/recipe-validation";
+import { calculatePriceForTargetMargin, calculateUnitMarginPercent, evaluateMealPricing } from "../lib/domain/pricing";
 import { calculateIngredientPurchaseEconomics, calculateMeasuredBatchCost, calculateMealCost, summarizeComponentCostEvidence } from "../lib/domain/costing";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
@@ -244,4 +245,33 @@ test("blocks zero labor from being called true cost", () => {
   const result = calculateMealCost(meals[0], "balanced", evidence, packaging, ops);
   assert.equal(result.status, "blocked");
   assert.ok(result.errors.some((error) => error.includes("direct-labor")));
+});
+
+
+test("calculates a price floor from fully loaded cost and target margin", () => {
+  assert.equal(calculatePriceForTargetMargin(800, 20), 1000);
+  assert.equal(calculateUnitMarginPercent(1000, 800), 20);
+});
+
+test("rounds a validated price floor up to a sellable increment", () => {
+  const result = evaluateMealPricing({ costCents: 835, costStatus: "validated", targetMarginPercent: 25, roundingIncrementCents: 50 });
+  assert.equal(result.status, "validated-price-floor");
+  assert.equal(result.minimumPriceCents, 1114);
+  assert.equal(result.recommendedPriceCents, 1150);
+  assert.equal(result.canFinalize, true);
+  assert.ok((result.achievedMarginPercent ?? 0) >= 25);
+});
+
+test("keeps pricing as planning-only when meal cost is not validated", () => {
+  const result = evaluateMealPricing({ costCents: 700, costStatus: "measured-estimate", targetMarginPercent: 25, candidatePriceCents: 1200 });
+  assert.equal(result.status, "planning-estimate");
+  assert.equal(result.canFinalize, false);
+  assert.equal(result.candidateMarginPercent, 41.7);
+});
+
+test("blocks pricing when the cost basis is blocked", () => {
+  const result = evaluateMealPricing({ costCents: null, costStatus: "blocked", targetMarginPercent: 25 });
+  assert.equal(result.status, "blocked");
+  assert.equal(result.recommendedPriceCents, null);
+  assert.ok(result.errors.some((error) => error.includes("cost basis")));
 });
