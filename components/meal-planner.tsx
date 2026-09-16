@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { calculateMealSnapshot } from "@/lib/domain/calculations";
@@ -11,6 +12,14 @@ const portionCopy: Record<PortionSize, string> = {
   lean: "Lighter portion",
   balanced: "Everyday balance",
   build: "More fuel",
+};
+
+const mealImageById: Record<string, string> = {
+  "yaad-jerk-chicken": "/food/yaad-jerk-chicken.jpg",
+  "island-curry-chicken": "/food/island-curry-chicken.jpg",
+  "garlic-shrimp-bowl": "/food/garlic-shrimp-bowl.jpg",
+  "beef-sweet-potato": "/food/beef-sweet-potato.jpg",
+  "escovitch-cod-plate": "/food/escovitch-cod-plate.jpg",
 };
 
 export function MealPlanner() {
@@ -99,11 +108,12 @@ export function MealPlanner() {
             const count = counts[item.id] ?? 0;
             return (
               <article key={item.id} className="overflow-hidden rounded-[1.6rem] border border-[var(--line)] bg-[var(--surface)] shadow-[0_20px_55px_rgba(60,45,25,.07)]">
-                <div className="relative grid min-h-44 place-items-center bg-[linear-gradient(135deg,#253d2d,#e46d31)] p-6 text-white">
-                  <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_25%_25%,white_0,transparent_28%),radial-gradient(circle_at_75%_65%,#ffd791_0,transparent_30%)]" />
-                  <div className="relative text-center">
-                    <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-[.16em]">{meal.core ? "Core favorite" : "Rotating"}</span>
-                    <p className="mt-4 text-3xl font-black tracking-[-.05em]">{meal.name}</p>
+                <div className="relative min-h-56 overflow-hidden text-white">
+                  <Image src={mealImageById[meal.id]} alt={`Illustrative ${meal.name} presentation`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-6">
+                    <span className="rounded-full border border-white/20 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-[.16em] backdrop-blur-sm">{meal.core ? "Core favorite" : "Rotating"}</span>
+                    <p className="mt-4 text-3xl font-black tracking-[-.05em] drop-shadow-md">{meal.name}</p>
                   </div>
                 </div>
                 <div className="p-5">

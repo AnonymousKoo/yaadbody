@@ -5,9 +5,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
 const ways = [
-  { eyebrow: "Handle my week", title: "Meal Prep", body: "Fresh, flavorful meals built around your goals and how much of the week you want handled.", cta: "Build my week", href: "/start" },
-  { eyebrow: "Feed the gathering", title: "Party Trays", body: "A simpler way to feed smaller gatherings when you want great food without a full catering process.", cta: "Explore party trays", href: "/catering" },
-  { eyebrow: "Plan the occasion", title: "Catering", body: "Full-flavor food for events, with drop-off first and higher-touch service when the moment needs it.", cta: "Plan an event", href: "/catering" },
+  { eyebrow: "Handle my week", title: "Meal Prep", body: "Fresh, flavorful meals built around your goals and how much of the week you want handled.", cta: "Build my week", href: "/start", image: "/food/yaad-jerk-chicken.jpg" },
+  { eyebrow: "Feed the gathering", title: "Party Trays", body: "A simpler way to feed smaller gatherings when you want great food without a full catering process.", cta: "Explore party trays", href: "/catering", image: "/food/party-tray.jpg" },
+  { eyebrow: "Plan the occasion", title: "Catering", body: "Full-flavor food for events, with drop-off first and higher-touch service when the moment needs it.", cta: "Plan an event", href: "/catering", image: "/food/catering-spread.jpg" },
 ] as const;
 
 const steps = [
@@ -18,7 +18,13 @@ const steps = [
 ] as const;
 
 const featured = meals.slice(0, 4);
-const cardTones = ["from-[#21382a] to-[#55765f]", "from-[#b84716] to-[#ed8a4d]", "from-[#292622] to-[#665d52]", "from-[#34543c] to-[#d17a36]"];
+const mealImageById: Record<string, string> = {
+  "yaad-jerk-chicken": "/food/yaad-jerk-chicken.jpg",
+  "island-curry-chicken": "/food/island-curry-chicken.jpg",
+  "garlic-shrimp-bowl": "/food/garlic-shrimp-bowl.jpg",
+  "beef-sweet-potato": "/food/beef-sweet-potato.jpg",
+  "escovitch-cod-plate": "/food/escovitch-cod-plate.jpg",
+};
 export default function Home() {
   return (
     <><SiteHeader /><main className="overflow-hidden">
@@ -36,7 +42,8 @@ export default function Home() {
             <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-[var(--ink-muted)]"><span>Jamaican roots.</span><span>Made fresh.</span><span>Built for real life.</span></div>
           </div>
           <div className="relative min-h-[430px] overflow-hidden rounded-[2.25rem] bg-[var(--leaf-deep)] p-6 text-white shadow-[0_32px_90px_rgba(33,56,42,.22)] sm:p-8">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_18%,rgba(244,199,108,.28),transparent_24%),radial-gradient(circle_at_20%_85%,rgba(229,108,47,.34),transparent_34%)]" />
+            <Image src="/food/yaad-jerk-chicken.jpg" alt="Illustrative YaadBody meal presentation" fill priority sizes="(max-width: 1024px) 100vw, 46vw" className="object-cover" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,31,23,.18),rgba(20,31,23,.82)_68%,rgba(20,31,23,.96))]" />
             <div className="relative flex h-full flex-col justify-between gap-12">
               <div className="flex items-start justify-between gap-4">
                 <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.18em] text-white/75">YaadBody</span>
@@ -57,21 +64,31 @@ export default function Home() {
       <section className="mx-auto max-w-[var(--page-width)] px-5 py-16 lg:px-8 lg:py-24">
         <div className="max-w-3xl"><p className="eyebrow">Choose what you need</p><h2 className="text-balance mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">The right path without the extra back-and-forth.</h2><p className="mt-4 text-lg leading-8 text-[var(--ink-muted)]">Start with the outcome. YaadBody routes you into the right experience from there.</p></div>
         <div className="mt-10 grid gap-5 lg:grid-cols-3">
-          {ways.map((way, index) => <article id={way.title === "Party Trays" ? "party-trays" : undefined} key={way.title} className="group rounded-[1.7rem] border border-[var(--line)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_20px_55px_rgba(45,43,38,.08)]">
-            <div className="flex items-center justify-between"><span className="text-xs font-black uppercase tracking-[.14em] text-[var(--brand-deep)]">{way.eyebrow}</span><span className="text-xs font-black text-[var(--ink-muted)]">0{index + 1}</span></div>
-            <h3 className="mt-8 text-3xl font-black tracking-[-.045em]">{way.title}</h3>
-            <p className="mt-3 min-h-20 leading-7 text-[var(--ink-muted)]">{way.body}</p>
-            <Link href={way.href} className="mt-7 inline-flex items-center gap-2 font-black text-[var(--brand-deep)]">{way.cta} <span className="transition group-hover:translate-x-1">→</span></Link>
+          {ways.map((way, index) => <article id={way.title === "Party Trays" ? "party-trays" : undefined} key={way.title} className="group overflow-hidden rounded-[1.7rem] border border-[var(--line)] bg-[var(--surface)] transition hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_20px_55px_rgba(45,43,38,.10)]">
+            <div className="relative h-44 overflow-hidden">
+              <Image src={way.image} alt={`Illustrative ${way.title} presentation`} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between"><span className="text-xs font-black uppercase tracking-[.14em] text-[var(--brand-deep)]">{way.eyebrow}</span><span className="text-xs font-black text-[var(--ink-muted)]">0{index + 1}</span></div>
+              <h3 className="mt-6 text-3xl font-black tracking-[-.045em]">{way.title}</h3>
+              <p className="mt-3 min-h-20 leading-7 text-[var(--ink-muted)]">{way.body}</p>
+              <Link href={way.href} className="mt-7 inline-flex items-center gap-2 font-black text-[var(--brand-deep)]">{way.cta} <span className="transition group-hover:translate-x-1">→</span></Link>
+            </div>
           </article>)}
         </div>
       </section>
 
       <section className="border-y border-black/5 bg-[#efe8dc]">
         <div className="mx-auto max-w-[var(--page-width)] px-5 py-16 lg:px-8 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-5"><div className="max-w-3xl"><p className="eyebrow">A taste of YaadBody</p><h2 className="mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">Flavor first. Structure behind it.</h2><p className="mt-4 max-w-2xl text-[var(--ink-muted)]">Menu examples shown here are food concepts from the current build. Weekly availability changes by cycle.</p></div><Link href="/menu" className="font-black text-[var(--brand-deep)]">See the weekly menu →</Link></div>
+          <div className="flex flex-wrap items-end justify-between gap-5"><div className="max-w-3xl"><p className="eyebrow">A taste of YaadBody</p><h2 className="mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">Flavor first. Structure behind it.</h2><p className="mt-4 max-w-2xl text-[var(--ink-muted)]">Menu examples shown here are food concepts from the current build. Illustrative photography is used for presentation; weekly availability and plating may vary.</p></div><Link href="/menu" className="font-black text-[var(--brand-deep)]">See the weekly menu →</Link></div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((meal, index) => <article key={meal.id} className="overflow-hidden rounded-[1.55rem] border border-black/5 bg-white shadow-[0_18px_40px_rgba(47,43,36,.07)]">
-              <div className={`relative h-44 bg-gradient-to-br ${cardTones[index]}`}><div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,.22),transparent_24%)]" /><span className="absolute bottom-4 left-4 rounded-full border border-white/15 bg-black/15 px-3 py-1 text-[10px] font-black uppercase tracking-[.15em] text-white">{meal.core ? 'Core favorite' : 'Rotation'}</span></div>
+            {featured.map((meal) => <article key={meal.id} className="overflow-hidden rounded-[1.55rem] border border-black/5 bg-white shadow-[0_18px_40px_rgba(47,43,36,.07)]">
+              <div className="relative h-48 overflow-hidden">
+                <Image src={mealImageById[meal.id]} alt={`Illustrative ${meal.name} presentation`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-500 hover:scale-[1.03]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <span className="absolute bottom-4 left-4 rounded-full border border-white/20 bg-black/35 px-3 py-1 text-[10px] font-black uppercase tracking-[.15em] text-white backdrop-blur-sm">{meal.core ? 'Core favorite' : 'Rotation'}</span>
+              </div>
               <div className="p-5"><h3 className="text-xl font-black tracking-[-.035em]">{meal.name}</h3><p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{meal.description}</p></div>
             </article>)}
           </div>
@@ -96,8 +113,9 @@ export default function Home() {
         <div className="overflow-hidden rounded-[2rem] bg-[#191d1a] text-white shadow-[0_28px_80px_rgba(23,27,24,.18)]">
           <div className="grid lg:grid-cols-[1.05fr_.95fr]">
             <div className="p-7 sm:p-10 lg:p-12"><p className="text-xs font-black uppercase tracking-[.17em] text-[var(--warm)]">Catering + events</p><h2 className="mt-4 max-w-xl text-4xl font-black leading-[1] tracking-[-.055em] sm:text-5xl">Good food brings people together.</h2><p className="mt-5 max-w-xl text-lg leading-8 text-white/65">From office lunches and family gatherings to bigger celebrations, YaadBody brings the same full-flavor standard to the table.</p><div className="mt-8 flex flex-wrap gap-3"><Link href="/catering" className="rounded-full bg-[var(--brand)] px-6 py-3.5 font-black text-white">Plan my event →</Link><a href="#party-trays" className="rounded-full border border-white/15 px-6 py-3.5 font-black text-white">See party trays</a></div></div>
-            <div className="relative min-h-[340px] bg-[linear-gradient(140deg,#34543c,#21382a_48%,#b84716)] p-7 sm:p-10">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_25%,rgba(244,199,108,.3),transparent_22%),radial-gradient(circle_at_30%_78%,rgba(255,255,255,.12),transparent_30%)]" />
+            <div className="relative min-h-[340px] overflow-hidden p-7 sm:p-10">
+              <Image src="/food/catering-spread.jpg" alt="Illustrative catering spread" fill sizes="(max-width: 1024px) 100vw, 46vw" className="object-cover" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,27,24,.18),rgba(23,27,24,.88))]" />
               <div className="relative flex h-full flex-col justify-end"><p className="text-xs font-black uppercase tracking-[.17em] text-white/55">Built for</p><div className="mt-4 flex flex-wrap gap-2">{['Corporate lunches','Private parties','Family gatherings','Celebrations'].map((item) => <span key={item} className="rounded-full border border-white/15 bg-white/[.06] px-4 py-2 text-sm font-bold">{item}</span>)}</div><p className="mt-8 max-w-sm text-3xl font-black leading-[1.05] tracking-[-.045em]">Same YaadBody standard. Bigger table.</p></div>
             </div>
           </div>
