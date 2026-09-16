@@ -34,6 +34,12 @@ export function calculateIngredientPurchaseRequirements(
       errors.push(`Missing measured yield evidence for component: ${demand.componentId}`);
       continue;
     }
+    if (evidence.confidence === "validated") {
+      const yieldConsistencyProven = evidence.evidenceRunCount >= 3
+        && Number.isFinite(evidence.yieldSpreadPercent)
+        && (evidence.yieldSpreadPercent ?? Infinity) <= 10;
+      if (!yieldConsistencyProven) errors.push(`Validated yield evidence requires 3+ consistent runs for component: ${demand.componentId}`);
+    }
     demandConfidences.push(evidence.confidence);
     const rawInputRequiredGrams = demand.totalGrams / (evidence.measuredYieldPercent / 100);
     const recipeWeight = component.ingredients.reduce((sum, line) => sum + line.gramsPer100gComponent, 0);

@@ -369,3 +369,19 @@ test("blocks exact purchasing requirements when inventory evidence is missing", 
   assert.equal(result.status, "blocked");
   assert.ok(result.errors.some((error) => error.includes("inventory position")));
 });
+
+
+test("rejects validated purchasing yield without repeat-run evidence", () => {
+  const result = calculateIngredientPurchaseRequirements(
+    [{ componentId: "jerk-chicken", totalGrams: 760 }],
+    components,
+    [{ componentId: "jerk-chicken", costPerCooked100gCents: 125, measuredYieldPercent: 76, confidence: "validated", evidenceRunCount: 1 }],
+    [
+      { ingredientId: "chicken", usableOnHandGrams: 0, reservedGrams: 0, safetyStockGrams: 0, confidence: "validated" },
+      { ingredientId: "jerk-seasoning", usableOnHandGrams: 0, reservedGrams: 0, safetyStockGrams: 0, confidence: "validated" },
+      { ingredientId: "oil", usableOnHandGrams: 0, reservedGrams: 0, safetyStockGrams: 0, confidence: "validated" },
+    ],
+  );
+  assert.equal(result.status, "blocked");
+  assert.ok(result.errors.some((error) => error.includes("3+ consistent runs")));
+});
