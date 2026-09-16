@@ -164,7 +164,7 @@ export function calculateMealCost(
   const estimatedFullyLoadedCostCents = errors.length ? null : foodCostCents + packagingCostCents + operatingCostCents;
   const confidences = [...componentLines.map((line) => line.confidence), ...packaging.map((line) => line.confidence), ...operatingCosts.map((line) => line.confidence)];
   const confidence = confidences.length ? weakestConfidence(confidences) : "demo";
-  const status = errors.length ? "blocked" : confidence === "validated" ? "validated" : confidence === "measured-once" ? "measured-estimate" : "demo-estimate";
+  const status: "blocked" | "validated" | "measured-estimate" | "demo-estimate" = errors.length ? "blocked" : confidence === "validated" ? "validated" : confidence === "measured-once" ? "measured-estimate" : "demo-estimate";
   return {
     status,
     errors,
