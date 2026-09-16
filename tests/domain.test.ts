@@ -5,6 +5,7 @@ import { aggregateMealPrepDemand } from "../lib/domain/production";
 import { eligibleMenuForIntake, recommendMealPlan } from "../lib/domain/recommendations";
 import { evaluateCateringInquiry } from "../lib/domain/catering";
 import { validateMealPrepOrderDraft } from "../lib/domain/orders";
+import { summarizeRecipeBatchTest } from "../lib/domain/recipe-validation";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
 
@@ -115,4 +116,24 @@ test("filters a disliked base protein from the recommended menu", () => {
   };
   const eligible = eligibleMenuForIntake(intake, weeklyMenu, meals, components, ingredients);
   assert.ok(!eligible.some((entry) => entry.meal.id === "beef-sweet-potato"));
+});
+
+
+test("summarizes a physical batch test with cooking shrink", () => {
+  const summary = summarizeRecipeBatchTest({
+    id: "test-chicken", componentId: "jerk-chicken", rawInputGrams: 1000, cookedOutputGrams: 760, actualBatchCostCents: 950,
+  });
+  assert.equal(summary.valid, true);
+  assert.equal(summary.yieldPercent, 76);
+  assert.equal(summary.massChangePercent, -24);
+  assert.equal(summary.actualCostPerCooked100gCents, 125);
+});
+
+test("allows cooked output above raw input for water-absorbing components", () => {
+  const summary = summarizeRecipeBatchTest({
+    id: "test-rice", componentId: "white-rice", rawInputGrams: 500, cookedOutputGrams: 1400, actualBatchCostCents: 240,
+  });
+  assert.equal(summary.valid, true);
+  assert.equal(summary.yieldPercent, 280);
+  assert.equal(summary.massChangePercent, 180);
 });

@@ -155,6 +155,15 @@ export type CateringInquiry = {
   dietaryNotes: string;
 };
 
+export type RecipeBatchTest = {
+  id: string;
+  componentId: string;
+  rawInputGrams: number;
+  cookedOutputGrams: number;
+  actualBatchCostCents: MoneyCents;
+  notes?: string;
+};
+
 export type WasteReason =
   | "prep-loss"
   | "cooking-loss"
