@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { calculateMealSnapshot } from "@/lib/domain/calculations";
-import type { Allergen, FulfillmentMethod, PortionSize } from "@/lib/domain/types";
+import { validateMealPrepOrderDraft } from "@/lib/domain/orders";
+import type { Allergen, FulfillmentMethod, MealPrepOrderDraft, PortionSize } from "@/lib/domain/types";
 import { components, ingredients, meals, plans, weeklyMenu } from "@/fixtures/demo";
 
 const portionCopy: Record<PortionSize, string> = {
@@ -20,10 +21,12 @@ export function MealPlanner() {
   const allergenFilters = (searchParams.get("allergens")?.split(",").filter(Boolean) ?? []) as Allergen[];
   const initialPlanId = plans.some((item) => item.id === requestedPlan) ? requestedPlan! : "plan-10";
   const initialPortion = (["lean", "balanced", "build"] as string[]).includes(requestedPortion ?? "") ? requestedPortion as PortionSize : "balanced";
-  const fulfillment = (["pickup", "delivery"] as string[]).includes(requestedFulfillment ?? "") ? requestedFulfillment as FulfillmentMethod : undefined;
+  const initialFulfillment = (["pickup", "delivery"] as string[]).includes(requestedFulfillment ?? "") ? requestedFulfillment as FulfillmentMethod : "pickup";
   const [planId, setPlanId] = useState(initialPlanId);
   const [portionSize, setPortionSize] = useState<PortionSize>(initialPortion);
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<FulfillmentMethod>(initialFulfillment);
+  const [reviewing, setReviewing] = useState(false);
   const plan = plans.find((item) => item.id === planId) ?? plans[1];
   const selectedCount = Object.values(counts).reduce((sum, count) => sum + count, 0);
   const remaining = plan.mealCount - selectedCount;
@@ -39,10 +42,23 @@ export function MealPlanner() {
   const changeCount = (menuItemId: string, delta: number) => {
     setCounts((current) => {
       const next = Math.max(0, (current[menuItemId] ?? 0) + delta);
+      setReviewing(false);
       if (delta > 0 && selectedCount >= plan.mealCount) return current;
       return { ...current, [menuItemId]: next };
     });
   };
+
+  const draft: MealPrepOrderDraft = {
+    id: "prototype-draft",
+    status: "draft",
+    planId,
+    fulfillmentMethod,
+    customerAllergenFilters: allergenFilters,
+    selections: menu
+      .filter(({ item }) => (counts[item.id] ?? 0) > 0)
+      .map(({ item }) => ({ menuItemId: item.id, portionSize, quantity: counts[item.id] })),
+  };
+  const draftValidation = validateMealPrepOrderDraft(draft, plans, weeklyMenu);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_330px]">
@@ -51,7 +67,7 @@ export function MealPlanner() {
           {plans.map((option) => (
             <button
               key={option.id}
-              onClick={() => { setPlanId(option.id); setCounts({}); }}
+              onClick={() => { setPlanId(option.id); setCounts({}); setReviewing(false); }}
               className={`rounded-2xl border px-4 py-4 text-left transition ${planId === option.id ? "border-[var(--brand)] bg-[#fff0e8]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[#c5b9a8]"}`}
             >
               <span className="block text-2xl font-black">{option.mealCount}</span>
@@ -65,7 +81,7 @@ export function MealPlanner() {
           {(["lean", "balanced", "build"] as PortionSize[]).map((size) => (
             <button
               key={size}
-              onClick={() => setPortionSize(size)}
+              onClick={() => { setPortionSize(size); setReviewing(false); }}
               className={`rounded-full border px-4 py-2 text-sm font-bold capitalize ${portionSize === size ? "border-[var(--leaf-deep)] bg-[var(--leaf-deep)] text-white" : "border-[var(--line)] bg-white"}`}
             >
               {size} · {portionCopy[size]}
@@ -73,7 +89,7 @@ export function MealPlanner() {
           ))}
         </div>
 
-        {(fulfillment || allergenFilters.length > 0) && <div className="mt-7 rounded-2xl border border-[var(--line)] bg-white p-4 text-sm"><span className="font-black">From your intake:</span>{fulfillment && <span className="ml-2 capitalize">{fulfillment}</span>}{allergenFilters.length > 0 && <span className="ml-2 text-[var(--ink-muted)]">· hiding recipes listing {allergenFilters.join(", ")}</span>}<p className="mt-1 text-xs text-[var(--ink-muted)]">Displayed-recipe filtering is not a cross-contact guarantee.</p></div>}
+        {(requestedFulfillment || allergenFilters.length > 0) && <div className="mt-7 rounded-2xl border border-[var(--line)] bg-white p-4 text-sm"><span className="font-black">From your intake:</span><span className="ml-2 capitalize">{fulfillmentMethod}</span>{allergenFilters.length > 0 && <span className="ml-2 text-[var(--ink-muted)]">· hiding recipes listing {allergenFilters.join(", ")}</span>}<p className="mt-1 text-xs text-[var(--ink-muted)]">Displayed-recipe filtering is not a cross-contact guarantee.</p></div>}
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           {menu.map(({ item, meal }) => {
@@ -98,8 +114,8 @@ export function MealPlanner() {
                   </div>
                   <div className="mt-5 flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-[.12em] text-[var(--ink-muted)]">Demo food cost</p>
-                      <p className="font-black">${(snapshot.estimatedFoodCostCents / 100).toFixed(2)}</p>
+                      <p className="text-xs font-bold uppercase tracking-[.12em] text-[var(--ink-muted)]">Portion</p>
+                      <p className="font-black capitalize">{portionSize}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button aria-label={`Remove ${meal.name}`} onClick={() => changeCount(item.id, -1)} className="grid h-9 w-9 place-items-center rounded-full border border-[var(--line)] bg-white font-black">−</button>
@@ -132,10 +148,20 @@ export function MealPlanner() {
           ))}
           {selectedCount === 0 && <p className="text-sm text-white/55">Add meals to build your weekly plan.</p>}
         </div>
-        <button disabled={remaining !== 0} className="mt-7 w-full rounded-full bg-[var(--warm)] px-5 py-3 font-black text-[var(--leaf-deep)] disabled:cursor-not-allowed disabled:opacity-35">
-          {remaining === 0 ? "Continue to fulfillment" : `Choose ${remaining} more`}
+        <div className="mt-6 border-t border-white/15 pt-5">
+          <p className="text-xs font-black uppercase tracking-[.14em] text-white/50">Fulfillment</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">{(["pickup", "delivery"] as FulfillmentMethod[]).map((method) => <button key={method} onClick={() => { setFulfillmentMethod(method); setReviewing(false); }} className={`rounded-full px-3 py-2 text-sm font-black capitalize ${fulfillmentMethod === method ? "bg-white text-[var(--leaf-deep)]" : "border border-white/20 text-white/70"}`}>{method}</button>)}</div>
+        </div>
+        <button onClick={() => setReviewing(true)} disabled={remaining !== 0} className="mt-6 w-full rounded-full bg-[var(--warm)] px-5 py-3 font-black text-[var(--leaf-deep)] disabled:cursor-not-allowed disabled:opacity-35">
+          {remaining === 0 ? "Review order draft" : `Choose ${remaining} more`}
         </button>
-        <p className="mt-4 text-xs leading-5 text-white/45">Prototype only. Checkout, Avuhz billing, customer identity, and fulfillment are intentionally not wired yet.</p>
+        {reviewing && <div className="mt-5 rounded-2xl bg-white/10 p-4">
+          <p className="font-black text-[var(--warm)]">{draftValidation.valid ? "Draft passes local validation" : "Draft needs attention"}</p>
+          <p className="mt-2 text-sm text-white/65">{plan.mealCount} meals · <span className="capitalize">{portionSize}</span> · <span className="capitalize">{fulfillmentMethod}</span></p>
+          {draftValidation.errors.length > 0 && <ul className="mt-3 space-y-1 text-xs text-[#ffd8c5]">{draftValidation.errors.map((error) => <li key={error}>• {error}</li>)}</ul>}
+          {draftValidation.valid && <p className="mt-3 text-xs leading-5 text-white/50">The next production boundary is customer identity + shared Avuhz checkout/billing. This prototype does not submit, charge, reserve inventory, or create an authoritative order.</p>}
+        </div>}
+        <p className="mt-4 text-xs leading-5 text-white/45">Prototype only. Checkout, Avuhz billing, customer identity, and authoritative fulfillment are intentionally not wired yet.</p>
       </aside>
     </div>
   );
