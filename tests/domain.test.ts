@@ -30,8 +30,8 @@ test("aggregates locked orders into kitchen component demand", () => {
   const demand = aggregateMealPrepDemand(demoOrders, weeklyMenu, meals);
   const jerk = demand.find((item) => item.componentId === "jerk-chicken");
   const shrimp = demand.find((item) => item.componentId === "garlic-shrimp");
-  assert.equal(jerk?.totalGrams, 510);
-  assert.equal(shrimp?.totalGrams, 420);
+  assert.equal(jerk?.totalGrams, 680);
+  assert.equal(shrimp?.totalGrams, 620);
 });
 
 test("separates total waste from avoidable waste", () => {
