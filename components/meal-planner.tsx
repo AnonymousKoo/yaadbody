@@ -19,6 +19,7 @@ export function MealPlanner() {
   const requestedPortion = searchParams.get("portion");
   const requestedFulfillment = searchParams.get("fulfillment");
   const allergenFilters = (searchParams.get("allergens")?.split(",").filter(Boolean) ?? []) as Allergen[];
+  const excludedProteinIds = searchParams.get("excludeProteins")?.split(",").filter(Boolean) ?? [];
   const initialPlanId = plans.some((item) => item.id === requestedPlan) ? requestedPlan! : "plan-10";
   const initialPortion = (["lean", "balanced", "build"] as string[]).includes(requestedPortion ?? "") ? requestedPortion as PortionSize : "balanced";
   const initialFulfillment = (["pickup", "delivery"] as string[]).includes(requestedFulfillment ?? "") ? requestedFulfillment as FulfillmentMethod : "pickup";
@@ -34,6 +35,7 @@ export function MealPlanner() {
   const menu = weeklyMenu
     .map((item) => ({ item, meal: meals.find((meal) => meal.id === item.mealId)! }))
     .filter(({ meal }) => {
+      if (excludedProteinIds.includes(meal.proteinComponentId)) return false;
       if (allergenFilters.length === 0) return true;
       const snapshot = calculateMealSnapshot(meal, portionSize, components, ingredients);
       return !snapshot.allergens.some((allergen) => allergenFilters.includes(allergen));
@@ -89,7 +91,7 @@ export function MealPlanner() {
           ))}
         </div>
 
-        {(requestedFulfillment || allergenFilters.length > 0) && <div className="mt-7 rounded-2xl border border-[var(--line)] bg-white p-4 text-sm"><span className="font-black">From your intake:</span><span className="ml-2 capitalize">{fulfillmentMethod}</span>{allergenFilters.length > 0 && <span className="ml-2 text-[var(--ink-muted)]">· hiding recipes listing {allergenFilters.join(", ")}</span>}<p className="mt-1 text-xs text-[var(--ink-muted)]">Displayed-recipe filtering is not a cross-contact guarantee.</p></div>}
+        {(requestedFulfillment || allergenFilters.length > 0 || excludedProteinIds.length > 0) && <div className="mt-7 rounded-2xl border border-[var(--line)] bg-white p-4 text-sm"><span className="font-black">From your intake:</span><span className="ml-2 capitalize">{fulfillmentMethod}</span>{excludedProteinIds.length > 0 && <span className="ml-2 text-[var(--ink-muted)]">· {excludedProteinIds.length} protein exclusion(s)</span>}{allergenFilters.length > 0 && <span className="ml-2 text-[var(--ink-muted)]">· hiding recipes listing {allergenFilters.join(", ")}</span>}<p className="mt-1 text-xs text-[var(--ink-muted)]">Displayed-recipe filtering is not a cross-contact guarantee.</p></div>}
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           {menu.map(({ item, meal }) => {

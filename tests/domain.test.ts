@@ -106,3 +106,13 @@ test("rejects an underfilled meal-prep draft", () => {
   assert.equal(result.valid, false);
   assert.match(result.errors.join(" "), /exactly 10 meals/);
 });
+
+
+test("filters a disliked base protein from the recommended menu", () => {
+  const intake: CustomerMealIntake = {
+    goal: "healthy-eating", desiredMealCount: 10, preferredCuisines: [], allergens: [],
+    dislikedProteinComponentIds: ["lean-meatballs"], fulfillmentMethod: "pickup",
+  };
+  const eligible = eligibleMenuForIntake(intake, weeklyMenu, meals, components, ingredients);
+  assert.ok(!eligible.some((entry) => entry.meal.id === "beef-sweet-potato"));
+});
