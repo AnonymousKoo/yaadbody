@@ -87,6 +87,7 @@ export type MealPrepOrder = {
   status: "draft" | "locked" | "in-production" | "fulfilled" | "cancelled";
   planId: string;
   selections: MealSelection[];
+  fulfillmentMethod?: FulfillmentMethod;
 };
 
 export type MealPrepOrderDraft = MealPrepOrder & {
@@ -325,4 +326,33 @@ export type PackingTask = {
   quantity: number;
   proteinSubstitutionComponentId?: string;
   sourceOrderIds: string[];
+};
+
+
+export type PackedMealLabelRecord = {
+  id: string;
+  traceCode: string;
+  batchId: string;
+  sequence: number;
+  mealId: string;
+  mealName: string;
+  portionSize: PortionSize;
+  proteinSubstitutionComponentId?: string;
+  packedOn: string;
+  useByDate: string | null;
+  storageText: string;
+  ingredientStatement: string;
+  containsStatement: string | null;
+  allergens: Allergen[];
+  nutritionFacts: NutritionFactsPanel | null;
+  advisoryAllergenStatement: null;
+  operationalStatus: "proof-only" | "operational-label-ready";
+  regulatoryStatus: "not-assessed";
+};
+
+export type FulfillmentManifest = {
+  orderId: string;
+  fulfillmentMethod: FulfillmentMethod;
+  unitTraceCodes: string[];
+  totalUnits: number;
 };

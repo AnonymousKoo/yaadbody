@@ -10,6 +10,7 @@ import { calculatePriceForTargetMargin, calculateUnitMarginPercent, evaluateMeal
 import { compareSupplierOffers, evaluateSupplierOffer } from "../lib/domain/procurement";
 import { calculateIngredientPurchaseRequirements } from "../lib/domain/purchasing";
 import { buildIngredientAndAllergenStatement, buildPackingTasksFromOrders, generatePackingLabelRecords } from "../lib/domain/packing";
+import { buildFulfillmentManifests } from "../lib/domain/fulfillment";
 import { calculateIngredientPurchaseEconomics, calculateMeasuredBatchCost, calculateMealCost, summarizeComponentCostEvidence } from "../lib/domain/costing";
 import { cateringPackages, components, demoOrders, ingredients, meals, plans, wasteEntries, weeklyMenu } from "../fixtures/demo";
 import type { CateringInquiry, CustomerMealIntake } from "../lib/domain/types";
@@ -455,4 +456,42 @@ test("builds packing tasks directly from locked order demand", () => {
   assert.equal(substituted?.mealId, "yaad-jerk-chicken");
   assert.equal(substituted?.quantity, 1);
   assert.deepEqual(substituted?.sourceOrderIds, ["order-001"]);
+});
+
+
+test("assigns operationally ready packed units back to locked orders", () => {
+  const tasks = buildPackingTasksFromOrders(demoOrders, weeklyMenu, meals);
+  const packed = tasks.flatMap((task, taskIndex) => Array.from({ length: task.quantity }, (_, index) => ({
+    id: `p-${taskIndex}-${index}`, traceCode: `TRACE-${taskIndex}-${index}`, batchId: `B-${taskIndex}`, sequence: index + 1,
+    mealId: task.mealId, mealName: task.mealName, portionSize: task.portionSize, proteinSubstitutionComponentId: task.proteinSubstitutionComponentId,
+    packedOn: "2026-09-16", useByDate: "2026-09-20", storageText: "Keep Refrigerated", ingredientStatement: "demo", containsStatement: null, allergens: [], nutritionFacts: null, advisoryAllergenStatement: null, operationalStatus: "operational-label-ready" as const, regulatoryStatus: "not-assessed" as const,
+  })));
+  const result = buildFulfillmentManifests(demoOrders, weeklyMenu, meals, packed);
+  assert.equal(result.status, "ready");
+  assert.equal(result.expectedUnits, 15);
+  assert.equal(result.assignedUnits, 15);
+  assert.equal(result.manifests.find((item) => item.orderId === "order-001")?.totalUnits, 10);
+  assert.equal(result.manifests.find((item) => item.orderId === "order-002")?.fulfillmentMethod, "delivery");
+});
+
+test("blocks fulfillment when a packed unit is still proof-only", () => {
+  const task = buildPackingTasksFromOrders(demoOrders, weeklyMenu, meals)[0];
+  const packed = Array.from({ length: task.quantity }, (_, index) => ({
+    id: `proof-${index}`, traceCode: `PROOF-${index}`, batchId: "B-PROOF", sequence: index + 1, mealId: task.mealId, mealName: task.mealName, portionSize: task.portionSize, proteinSubstitutionComponentId: task.proteinSubstitutionComponentId, packedOn: "2026-09-16", useByDate: null, storageText: "Keep Refrigerated", ingredientStatement: "demo", containsStatement: null, allergens: [], nutritionFacts: null, advisoryAllergenStatement: null, operationalStatus: "proof-only" as const, regulatoryStatus: "not-assessed" as const,
+  }));
+  const result = buildFulfillmentManifests(demoOrders, weeklyMenu, meals, packed);
+  assert.equal(result.status, "blocked");
+  assert.ok(result.errors.some((error) => error.includes("not operational-label-ready")));
+  assert.ok(result.errors.some((error) => error.includes("Packing shortfall")));
+});
+
+test("blocks fulfillment when packed quantity exceeds locked demand", () => {
+  const tasks = buildPackingTasksFromOrders(demoOrders, weeklyMenu, meals);
+  const packed = tasks.flatMap((task, taskIndex) => Array.from({ length: task.quantity + (taskIndex === 0 ? 1 : 0) }, (_, index) => ({
+    id: `x-${taskIndex}-${index}`, traceCode: `X-${taskIndex}-${index}`, batchId: `BX-${taskIndex}`, sequence: index + 1, mealId: task.mealId, mealName: task.mealName, portionSize: task.portionSize, proteinSubstitutionComponentId: task.proteinSubstitutionComponentId, packedOn: "2026-09-16", useByDate: "2026-09-20", storageText: "Keep Refrigerated", ingredientStatement: "demo", containsStatement: null, allergens: [], nutritionFacts: null, advisoryAllergenStatement: null, operationalStatus: "operational-label-ready" as const, regulatoryStatus: "not-assessed" as const,
+  })));
+  const result = buildFulfillmentManifests(demoOrders, weeklyMenu, meals, packed);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.unassignedTraceCodes.length, 1);
+  assert.ok(result.errors.some((error) => error.includes("require disposition")));
 });

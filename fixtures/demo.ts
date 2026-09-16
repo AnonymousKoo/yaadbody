@@ -240,6 +240,7 @@ export const demoOrders: MealPrepOrder[] = [
     id: "order-001",
     status: "locked",
     planId: "plan-10",
+    fulfillmentMethod: "pickup",
     selections: [
       { menuItemId: "menu-1", portionSize: "balanced", quantity: 4 },
       { menuItemId: "menu-2", portionSize: "balanced", quantity: 3 },
@@ -251,6 +252,7 @@ export const demoOrders: MealPrepOrder[] = [
     id: "order-002",
     status: "locked",
     planId: "plan-5",
+    fulfillmentMethod: "delivery",
     selections: [
       { menuItemId: "menu-4", portionSize: "lean", quantity: 2 },
       { menuItemId: "menu-5", portionSize: "balanced", quantity: 2 },

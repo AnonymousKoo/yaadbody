@@ -7,6 +7,7 @@ import type {
   PackingBatchInput,
   MealPrepOrder,
   PackingTask,
+  PackedMealLabelRecord,
   WeeklyMenuItem,
   RecipeCompositionEvidence,
   ShelfLifePolicy,
@@ -135,14 +136,16 @@ export function generatePackingLabelRecords(
 
   const status = errors.length ? "proof-only" as const : "operational-label-ready" as const;
   const useByDate = validDate(input.packedOn) && shelfLife?.shelfLifeDays ? addDays(input.packedOn, shelfLife.shelfLifeDays) : null;
-  const records = meal && statement && input.quantity > 0
+  const records: PackedMealLabelRecord[] = meal && statement && input.quantity > 0
     ? Array.from({ length: Math.floor(input.quantity) }, (_, index) => ({
         id: `${input.batchId}-${String(index + 1).padStart(3, "0")}`,
         traceCode: `${input.batchId}-${String(index + 1).padStart(3, "0")}`,
         batchId: input.batchId,
         sequence: index + 1,
+        mealId: meal.id,
         mealName: meal.name,
         portionSize: input.portionSize,
+        proteinSubstitutionComponentId: input.proteinSubstitutionComponentId,
         packedOn: input.packedOn,
         useByDate,
         storageText: shelfLife?.storage === "frozen" ? "Keep Frozen" : "Keep Refrigerated",
