@@ -62,10 +62,10 @@ export function MealOnboarding() {
       </Question>
       <Question title="5. Any major allergens we should filter from the displayed recipes?" optional>
         <div className="flex flex-wrap gap-2">{allergenOptions.map((option) => <Toggle key={option.id} active={allergens.includes(option.id)} onClick={() => toggleAllergen(option.id)}>{option.label}</Toggle>)}</div>
-        <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">Prototype filter only. This does not establish an allergen-free kitchen or cross-contact guarantee.</p>
+        <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">Selecting an allergen hides recipes that list it. YaadBody is not represented as an allergen-free kitchen, and cross-contact may be possible.</p>
       </Question>
       <Question title="6. How do you want to receive the meals?">
-        <div className="grid gap-3 sm:grid-cols-2">{(["pickup", "delivery"] as FulfillmentMethod[]).map((method) => <button key={method} onClick={() => setFulfillmentMethod(method)} className={`rounded-2xl border p-5 text-left capitalize ${fulfillmentMethod === method ? "border-[var(--brand)] bg-[#fff0e8]" : "border-[var(--line)] bg-white"}`}><span className="font-black">{method}</span><span className="mt-1 block text-sm text-[var(--ink-muted)]">{method === "pickup" ? "Collect from an approved YaadBody pickup point." : "Delivery area and route pricing will be validated before launch."}</span></button>)}</div>
+        <div className="grid gap-3 sm:grid-cols-2">{(["pickup", "delivery"] as FulfillmentMethod[]).map((method) => <button key={method} onClick={() => setFulfillmentMethod(method)} className={`rounded-2xl border p-5 text-left capitalize ${fulfillmentMethod === method ? "border-[var(--brand)] bg-[#fff0e8]" : "border-[var(--line)] bg-white"}`}><span className="font-black">{method}</span><span className="mt-1 block text-sm text-[var(--ink-muted)]">{method === "pickup" ? "Collect from a YaadBody pickup point." : "Delivery availability and fee depend on your location."}</span></button>)}</div>
       </Question>
     </div>
     <aside className="h-fit rounded-[1.7rem] bg-[var(--leaf-deep)] p-6 text-white lg:sticky lg:top-6">

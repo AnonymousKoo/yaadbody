@@ -29,15 +29,15 @@ export function CateringInquiryForm() {
       </div>
       <Field label="Dietary notes" className="mt-5"><textarea value={inquiry.dietaryNotes} onChange={(event) => update("dietaryNotes", event.target.value)} rows={4} placeholder="Only what the kitchen needs to know." className="field-control resize-none" /></Field>
       <button type="submit" className="mt-6 rounded-full bg-[var(--brand)] px-6 py-3 font-black text-white">Review inquiry</button>
-      <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">Prototype only. Nothing is transmitted or stored. We intentionally collect city/ZIP instead of a full event address at the inquiry stage.</p>
+      <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">Reviewing these details does not book your event. YaadBody will confirm availability, menu, service, and final pricing before booking.</p>
     </form>
     <aside className="h-fit rounded-[1.6rem] bg-[var(--leaf-deep)] p-6 text-white lg:sticky lg:top-6">
-      <p className="text-xs font-black uppercase tracking-[.16em] text-[var(--warm)]">Inquiry routing</p>
-      {!reviewed ? <p className="mt-4 text-sm leading-6 text-white/65">Complete the event details, then review how the current YaadBody package logic would route the request.</p> : <>
+      <p className="text-xs font-black uppercase tracking-[.16em] text-[var(--warm)]">Your event fit</p>
+      {!reviewed ? <p className="mt-4 text-sm leading-6 text-white/65">Complete the event details to see the best starting option for your gathering.</p> : <>
         <p className="mt-4 text-3xl font-black tracking-[-.05em]">{result.route === "party-trays" ? "Party Trays" : result.recommendedPackage?.name ?? "Needs adjustment"}</p>
         <p className="mt-3 text-sm leading-6 text-white/65">{result.message}</p>
         {result.errors.length > 0 && <ul className="mt-5 space-y-2 border-t border-white/15 pt-4 text-sm text-[#ffd8c5]">{result.errors.map((error) => <li key={error}>• {error}</li>)}</ul>}
-        {result.quoteReady && <div className="mt-5 rounded-2xl bg-white/10 p-4"><p className="font-black text-[var(--warm)]">Ready for costing review</p><p className="mt-1 text-xs leading-5 text-white/60">No price is generated until recipe, labor, packaging, delivery, and margin inputs are validated.</p></div>}
+        {result.quoteReady && <div className="mt-5 rounded-2xl bg-white/10 p-4"><p className="font-black text-[var(--warm)]">Ready for a custom quote</p><p className="mt-1 text-xs leading-5 text-white/60">YaadBody can confirm the menu, service level, delivery needs, and final pricing before booking.</p></div>}
       </>}
     </aside>
   </div>;

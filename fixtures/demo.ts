@@ -265,7 +265,7 @@ export const cateringPackages: CateringPackage[] = [
   {
     id: "drop-off-signature",
     name: "Signature Drop-Off",
-    description: "Package-first catering designed for leverage: cooked, packed, and delivered without on-site staffing.",
+    description: "A simple, full-flavor catering option prepared, packed, and delivered for your event.",
     minimumGuests: 20,
     proteinChoices: 2,
     sideChoices: 2,

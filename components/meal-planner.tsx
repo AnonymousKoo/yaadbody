@@ -115,7 +115,6 @@ export function MealPlanner() {
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           {menu.map(({ item, meal }) => {
-            const snapshot = calculateMealSnapshot(meal, portionSize, components, ingredients);
             const count = counts[item.id] ?? 0;
             const copy = mealCopy(meal);
             return (
@@ -130,11 +129,8 @@ export function MealPlanner() {
                 </div>
                 <div className="p-5">
                   <p className="text-sm leading-6 text-[var(--ink-muted)]">{copy.description}</p>
-                  <div className="mt-5 grid grid-cols-4 gap-2 rounded-2xl bg-[var(--surface-soft)] p-3 text-center">
-                    <Macro label="Cal" value={snapshot.macros.calories} />
-                    <Macro label="Protein" value={`${Math.round(snapshot.macros.proteinGrams)}g`} />
-                    <Macro label="Carbs" value={`${Math.round(snapshot.macros.carbGrams)}g`} />
-                    <Macro label="Fat" value={`${Math.round(snapshot.macros.fatGrams)}g`} />
+                  <div className="mt-5 rounded-2xl bg-[var(--surface-soft)] p-3 text-sm font-bold text-[var(--ink-muted)]">
+                    Choose the portion that fits your week.
                   </div>
                   <div className="mt-5 flex items-center justify-between">
                     <div>
@@ -177,20 +173,16 @@ export function MealPlanner() {
           <div className="mt-3 grid grid-cols-2 gap-2">{(["pickup", "delivery"] as FulfillmentMethod[]).map((method) => <button key={method} onClick={() => { setFulfillmentMethod(method); setReviewing(false); }} className={`rounded-full px-3 py-2 text-sm font-black capitalize ${fulfillmentMethod === method ? "bg-white text-[var(--leaf-deep)]" : "border border-white/20 text-white/70"}`}>{method}</button>)}</div>
         </div>
         <button onClick={() => setReviewing(true)} disabled={remaining !== 0} className="mt-6 w-full rounded-full bg-[var(--warm)] px-5 py-3 font-black text-[var(--leaf-deep)] disabled:cursor-not-allowed disabled:opacity-35">
-          {remaining === 0 ? "Review order draft" : `Choose ${remaining} more`}
+          {remaining === 0 ? "Review my week" : `Choose ${remaining} more`}
         </button>
         {reviewing && <div className="mt-5 rounded-2xl bg-white/10 p-4">
-          <p className="font-black text-[var(--warm)]">{draftValidation.valid ? "Draft passes local validation" : "Draft needs attention"}</p>
+          <p className="font-black text-[var(--warm)]">{draftValidation.valid ? "Your week is ready to review" : "Check your selections"}</p>
           <p className="mt-2 text-sm text-white/65">{plan.mealCount} meals · <span className="capitalize">{portionSize}</span> · <span className="capitalize">{fulfillmentMethod}</span></p>
           {draftValidation.errors.length > 0 && <ul className="mt-3 space-y-1 text-xs text-[#ffd8c5]">{draftValidation.errors.map((error) => <li key={error}>• {error}</li>)}</ul>}
-          {draftValidation.valid && <p className="mt-3 text-xs leading-5 text-white/50">The next production boundary is customer identity + shared Avuhz checkout/billing. This prototype does not submit, charge, reserve inventory, or create an authoritative order.</p>}
+          {draftValidation.valid && <p className="mt-3 text-xs leading-5 text-white/50">Review your meal count, portion, and fulfillment choice before finalizing your order with YaadBody.</p>}
         </div>}
-        <p className="mt-4 text-xs leading-5 text-white/45">Prototype only. Checkout, Avuhz billing, customer identity, and authoritative fulfillment are intentionally not wired yet.</p>
+
       </aside>
     </div>
   );
-}
-
-function Macro({ label, value }: { label: string; value: string | number }) {
-  return <div><p className="font-black">{value}</p><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--ink-muted)]">{label}</p></div>;
 }

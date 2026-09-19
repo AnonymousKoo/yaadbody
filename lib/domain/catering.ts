@@ -15,7 +15,7 @@ export function evaluateCateringInquiry(inquiry: CateringInquiry, packages: Cate
       quoteReady: false,
       recommendedPackage: undefined,
       errors,
-      message: "This size is better routed to Party Trays instead of a catering quote.",
+      message: "For this guest count, Party Trays are the best starting option.",
     };
   }
 
@@ -24,7 +24,7 @@ export function evaluateCateringInquiry(inquiry: CateringInquiry, packages: Cate
   );
 
   if (inquiry.guestCount >= 20 && !recommendedPackage) {
-    errors.push("The selected service level does not have a package for this guest count yet.");
+    errors.push("Choose a different service level or adjust the guest count to see an available option.");
   }
 
   return {
@@ -33,7 +33,7 @@ export function evaluateCateringInquiry(inquiry: CateringInquiry, packages: Cate
     recommendedPackage,
     errors,
     message: recommendedPackage
-      ? "The inquiry has enough structure for a costing review. Pricing still requires validated food, labor, packaging, delivery, and margin inputs."
-      : "Adjust the guest count or service level before costing review.",
+      ? "This option fits the event details you shared. YaadBody will confirm availability, menu, service, and final pricing before booking."
+      : "Adjust the guest count or service level to see the best available option.",
   };
 }

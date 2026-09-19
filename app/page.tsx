@@ -87,7 +87,7 @@ export default function Home() {
 
       <section className="border-y border-black/5 bg-[#efe8dc]">
         <div className="mx-auto max-w-[var(--page-width)] px-5 py-16 lg:px-8 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-5"><div className="max-w-3xl"><p className="eyebrow">Flavor first</p><h2 className="mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">Healthy weeks. Bolder gatherings.</h2><p className="mt-4 max-w-2xl text-[var(--ink-muted)]">From everyday meals to special occasions, YaadBody brings Jamaican roots, fresh ingredients, and serious flavor to the table. Illustrative photography is used for presentation; weekly availability and plating may vary.</p></div><Link href="/menu" className="font-black text-[var(--brand-deep)]">See the weekly menu →</Link></div>
+          <div className="flex flex-wrap items-end justify-between gap-5"><div className="max-w-3xl"><p className="eyebrow">Flavor first</p><h2 className="mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">Healthy weeks. Bolder gatherings.</h2><p className="mt-4 max-w-2xl text-[var(--ink-muted)]">From everyday meals to special occasions, YaadBody brings Jamaican roots, fresh ingredients, and serious flavor to the table. Menu selections rotate with weekly availability, and presentation may vary.</p></div><Link href="/menu" className="font-black text-[var(--brand-deep)]">See the weekly menu →</Link></div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {featured.map((meal) => {
               const copy = featuredCopyById[meal.id] ?? meal;
