@@ -49,7 +49,7 @@ export default function Home() {
             <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-[var(--ink-muted)]"><span>Jamaican roots.</span><span>Made fresh.</span><span>Built for real life.</span></div>
           </div>
           <div className="relative min-h-[430px] overflow-hidden rounded-[2.25rem] bg-[var(--leaf-deep)] p-6 text-white shadow-[0_32px_90px_rgba(33,56,42,.22)] sm:p-8">
-            <Image src="/food/island-curry-chicken.jpg" alt="Illustrative Jamaican curry chicken presentation" fill priority sizes="(max-width: 1024px) 100vw, 46vw" className="object-cover" />
+            <Image src="/food/yaad-jerk-chicken.jpg" alt="Illustrative YaadBody jerk chicken presentation" fill priority sizes="(max-width: 1024px) 100vw, 46vw" className="object-cover" />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,31,23,.18),rgba(20,31,23,.82)_68%,rgba(20,31,23,.96))]" />
             <div className="relative flex h-full flex-col justify-between gap-12">
               <div className="flex items-start">
