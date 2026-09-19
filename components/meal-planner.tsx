@@ -22,6 +22,17 @@ const mealImageById: Record<string, string> = {
   "escovitch-cod-plate": "/food/escovitch-cod-plate.jpg",
 };
 
+const mealCopyById: Record<string, { name: string; description: string }> = {
+  "island-curry-chicken": {
+    name: "Jamaican Curry Chicken",
+    description: "Rich Jamaican curry chicken served with classic island-style sides.",
+  },
+};
+
+function mealCopy(meal: (typeof meals)[number]) {
+  return mealCopyById[meal.id] ?? meal;
+}
+
 export function MealPlanner() {
   const searchParams = useSearchParams();
   const requestedPlan = searchParams.get("plan");
@@ -106,18 +117,19 @@ export function MealPlanner() {
           {menu.map(({ item, meal }) => {
             const snapshot = calculateMealSnapshot(meal, portionSize, components, ingredients);
             const count = counts[item.id] ?? 0;
+            const copy = mealCopy(meal);
             return (
               <article key={item.id} className="overflow-hidden rounded-[1.6rem] border border-[var(--line)] bg-[var(--surface)] shadow-[0_20px_55px_rgba(60,45,25,.07)]">
                 <div className="relative min-h-56 overflow-hidden text-white">
-                  <Image src={mealImageById[meal.id]} alt={`Illustrative ${meal.name} presentation`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                  <Image src={mealImageById[meal.id]} alt={`Illustrative ${copy.name} presentation`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-6">
                     <span className="rounded-full border border-white/20 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-[.16em] backdrop-blur-sm">{meal.core ? "Core favorite" : "Rotating"}</span>
-                    <p className="mt-4 text-3xl font-black tracking-[-.05em] drop-shadow-md">{meal.name}</p>
+                    <p className="mt-4 text-3xl font-black tracking-[-.05em] drop-shadow-md">{copy.name}</p>
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-sm leading-6 text-[var(--ink-muted)]">{meal.description}</p>
+                  <p className="text-sm leading-6 text-[var(--ink-muted)]">{copy.description}</p>
                   <div className="mt-5 grid grid-cols-4 gap-2 rounded-2xl bg-[var(--surface-soft)] p-3 text-center">
                     <Macro label="Cal" value={snapshot.macros.calories} />
                     <Macro label="Protein" value={`${Math.round(snapshot.macros.proteinGrams)}g`} />
@@ -130,9 +142,9 @@ export function MealPlanner() {
                       <p className="font-black capitalize">{portionSize}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button aria-label={`Remove ${meal.name}`} onClick={() => changeCount(item.id, -1)} className="grid h-9 w-9 place-items-center rounded-full border border-[var(--line)] bg-white font-black">−</button>
+                      <button aria-label={`Remove ${copy.name}`} onClick={() => changeCount(item.id, -1)} className="grid h-9 w-9 place-items-center rounded-full border border-[var(--line)] bg-white font-black">−</button>
                       <span className="w-6 text-center font-black">{count}</span>
-                      <button aria-label={`Add ${meal.name}`} onClick={() => changeCount(item.id, 1)} className="grid h-9 w-9 place-items-center rounded-full bg-[var(--brand)] font-black text-white">+</button>
+                      <button aria-label={`Add ${copy.name}`} onClick={() => changeCount(item.id, 1)} className="grid h-9 w-9 place-items-center rounded-full bg-[var(--brand)] font-black text-white">+</button>
                     </div>
                   </div>
                 </div>
@@ -154,7 +166,7 @@ export function MealPlanner() {
         <div className="mt-6 space-y-3 border-t border-white/15 pt-5">
           {menu.filter(({ item }) => (counts[item.id] ?? 0) > 0).map(({ item, meal }) => (
             <div key={item.id} className="flex justify-between gap-4 text-sm">
-              <span className="text-white/70">{meal.name}</span>
+              <span className="text-white/70">{mealCopy(meal).name}</span>
               <span className="font-black">× {counts[item.id]}</span>
             </div>
           ))}

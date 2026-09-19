@@ -25,6 +25,13 @@ const mealImageById: Record<string, string> = {
   "beef-sweet-potato": "/food/beef-sweet-potato.jpg",
   "escovitch-cod-plate": "/food/escovitch-cod-plate.jpg",
 };
+
+const featuredCopyById: Record<string, { name: string; description: string }> = {
+  "island-curry-chicken": {
+    name: "Jamaican Curry Chicken",
+    description: "Rich Jamaican curry chicken served with classic island-style sides.",
+  },
+};
 export default function Home() {
   return (
     <><SiteHeader /><main className="overflow-hidden">
@@ -32,9 +39,9 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_10%,rgba(229,108,47,.12),transparent_30%),radial-gradient(circle_at_70%_80%,rgba(52,84,60,.10),transparent_32%)]" />
         <div className="relative mx-auto grid max-w-[var(--page-width)] gap-12 px-5 py-16 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:py-24">
           <div className="self-center">
-            <p className="eyebrow">Meal prep · Party trays · Catering</p>
-            <h1 className="text-balance mt-5 max-w-3xl text-5xl font-black leading-[.94] tracking-[-.07em] sm:text-6xl lg:text-7xl">Great food, handled. <span className="text-[var(--brand)]">For your week or your event.</span></h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--ink-muted)]">Healthy meal prep that makes eating well easier. Full-flavor catering when it’s time to bring people together.</p>
+            <p className="eyebrow">Real food · Jamaican flavor</p>
+            <h1 className="text-balance mt-5 max-w-3xl text-5xl font-black leading-[.94] tracking-[-.07em] sm:text-6xl lg:text-7xl">Flavor first. <span className="text-[var(--brand)]">Built for your week or your event.</span></h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--ink-muted)]">Meal prep that fits your routine. Full-flavor catering that brings people together.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/start" className="rounded-full bg-[var(--brand)] px-6 py-3.5 font-black text-white shadow-[0_14px_34px_rgba(229,108,47,.2)] transition hover:-translate-y-0.5 hover:bg-[var(--brand-deep)]">Build my week →</Link>
               <Link href="/catering" className="rounded-full border border-[var(--line)] bg-white px-6 py-3.5 font-black transition hover:border-[var(--brand)]">Plan an event</Link>
@@ -42,16 +49,15 @@ export default function Home() {
             <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-[var(--ink-muted)]"><span>Jamaican roots.</span><span>Made fresh.</span><span>Built for real life.</span></div>
           </div>
           <div className="relative min-h-[430px] overflow-hidden rounded-[2.25rem] bg-[var(--leaf-deep)] p-6 text-white shadow-[0_32px_90px_rgba(33,56,42,.22)] sm:p-8">
-            <Image src="/food/yaad-jerk-chicken.jpg" alt="Illustrative YaadBody meal presentation" fill priority sizes="(max-width: 1024px) 100vw, 46vw" className="object-cover" />
+            <Image src="/food/island-curry-chicken.jpg" alt="Illustrative Jamaican curry chicken presentation" fill priority sizes="(max-width: 1024px) 100vw, 46vw" className="object-cover" />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,31,23,.18),rgba(20,31,23,.82)_68%,rgba(20,31,23,.96))]" />
             <div className="relative flex h-full flex-col justify-between gap-12">
-              <div className="flex items-start justify-between gap-4">
-                <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.18em] text-white/75">YaadBody</span>
-                <Image src="/yaadbody-logo.webp" alt="YaadBody logo" width={180} height={180} priority className="h-36 w-36 rounded-full border-4 border-white/10 object-cover shadow-2xl sm:h-44 sm:w-44" />
+              <div className="flex items-start">
+                <span className="rounded-full border border-white/15 bg-black/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.18em] text-white/80 backdrop-blur-sm">YaadBody</span>
               </div>
               <div>
-                <p className="text-xs font-black uppercase tracking-[.17em] text-[var(--warm)]">One kitchen. Three ways to eat.</p>
-                <p className="mt-3 max-w-md text-4xl font-black leading-[1] tracking-[-.055em] sm:text-5xl">Healthy weeks. Full-flavor moments.</p>
+                <p className="text-xs font-black uppercase tracking-[.17em] text-[var(--warm)]">One kitchen. Real Jamaican flavor.</p>
+                <p className="mt-3 max-w-md text-4xl font-black leading-[1] tracking-[-.055em] sm:text-5xl">Healthy weeks. Bolder gatherings.</p>
                 <div className="mt-6 grid gap-2 sm:grid-cols-3">
                   {['Meal Prep', 'Party Trays', 'Catering'].map((label) => <div key={label} className="rounded-2xl border border-white/10 bg-white/[.07] px-4 py-3 text-sm font-black">{label}</div>)}
                 </div>
@@ -62,7 +68,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-[var(--page-width)] px-5 py-16 lg:px-8 lg:py-24">
-        <div className="max-w-3xl"><p className="eyebrow">Choose what you need</p><h2 className="text-balance mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">The right path without the extra back-and-forth.</h2><p className="mt-4 text-lg leading-8 text-[var(--ink-muted)]">Start with the outcome. YaadBody routes you into the right experience from there.</p></div>
+        <div className="max-w-3xl"><p className="eyebrow">Tell us what matters</p><h2 className="text-balance mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">We specialize in food. You choose the outcome.</h2><p className="mt-4 text-lg leading-8 text-[var(--ink-muted)]">Whether you want to eat well, feed people, or save time, start with what you need and we’ll route you from there.</p></div>
         <div className="mt-10 grid gap-5 lg:grid-cols-3">
           {ways.map((way, index) => <article id={way.title === "Party Trays" ? "party-trays" : undefined} key={way.title} className="group overflow-hidden rounded-[1.7rem] border border-[var(--line)] bg-[var(--surface)] transition hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_20px_55px_rgba(45,43,38,.10)]">
             <div className="relative h-44 overflow-hidden">
@@ -81,16 +87,19 @@ export default function Home() {
 
       <section className="border-y border-black/5 bg-[#efe8dc]">
         <div className="mx-auto max-w-[var(--page-width)] px-5 py-16 lg:px-8 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-5"><div className="max-w-3xl"><p className="eyebrow">A taste of YaadBody</p><h2 className="mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">Flavor first. Structure behind it.</h2><p className="mt-4 max-w-2xl text-[var(--ink-muted)]">Menu examples shown here are food concepts from the current build. Illustrative photography is used for presentation; weekly availability and plating may vary.</p></div><Link href="/menu" className="font-black text-[var(--brand-deep)]">See the weekly menu →</Link></div>
+          <div className="flex flex-wrap items-end justify-between gap-5"><div className="max-w-3xl"><p className="eyebrow">Flavor first</p><h2 className="mt-4 text-4xl font-black tracking-[-.055em] sm:text-5xl">Healthy weeks. Bolder gatherings.</h2><p className="mt-4 max-w-2xl text-[var(--ink-muted)]">From everyday meals to special occasions, YaadBody brings Jamaican roots, fresh ingredients, and serious flavor to the table. Illustrative photography is used for presentation; weekly availability and plating may vary.</p></div><Link href="/menu" className="font-black text-[var(--brand-deep)]">See the weekly menu →</Link></div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((meal) => <article key={meal.id} className="overflow-hidden rounded-[1.55rem] border border-black/5 bg-white shadow-[0_18px_40px_rgba(47,43,36,.07)]">
-              <div className="relative h-48 overflow-hidden">
-                <Image src={mealImageById[meal.id]} alt={`Illustrative ${meal.name} presentation`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-500 hover:scale-[1.03]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                <span className="absolute bottom-4 left-4 rounded-full border border-white/20 bg-black/35 px-3 py-1 text-[10px] font-black uppercase tracking-[.15em] text-white backdrop-blur-sm">{meal.core ? 'Core favorite' : 'Rotation'}</span>
-              </div>
-              <div className="p-5"><h3 className="text-xl font-black tracking-[-.035em]">{meal.name}</h3><p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{meal.description}</p></div>
-            </article>)}
+            {featured.map((meal) => {
+              const copy = featuredCopyById[meal.id] ?? meal;
+              return <article key={meal.id} className="overflow-hidden rounded-[1.55rem] border border-black/5 bg-white shadow-[0_18px_40px_rgba(47,43,36,.07)]">
+                <div className="relative h-48 overflow-hidden">
+                  <Image src={mealImageById[meal.id]} alt={`Illustrative ${copy.name} presentation`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-500 hover:scale-[1.03]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  <span className="absolute bottom-4 left-4 rounded-full border border-white/20 bg-black/35 px-3 py-1 text-[10px] font-black uppercase tracking-[.15em] text-white backdrop-blur-sm">{meal.core ? 'Core favorite' : 'Rotation'}</span>
+                </div>
+                <div className="p-5"><h3 className="text-xl font-black tracking-[-.035em]">{copy.name}</h3><p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">{copy.description}</p></div>
+              </article>;
+            })}
           </div>
         </div>
       </section>
