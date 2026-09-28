@@ -101,7 +101,7 @@ export default function Home() {
             </div>
 
             <div className="relative min-h-[560px] lg:min-h-[650px]">
-              <div className="absolute inset-x-0 top-0 bottom-10 overflow-hidden rounded-[2rem] bg-[var(--leaf-deep)] shadow-[0_35px_90px_rgba(29,36,30,.18)] sm:rounded-[2.5rem]">
+              <div className="absolute inset-0 overflow-hidden rounded-[2rem] bg-[var(--leaf-deep)] shadow-[0_35px_90px_rgba(29,36,30,.18)] sm:rounded-[2.5rem]">
                 <Image
                   src="/food/yaad-jerk-chicken.jpg"
                   alt="Illustrative YaadBody jerk chicken presentation"
@@ -117,16 +117,6 @@ export default function Home() {
                     <br />
                     <span className="text-[var(--warm)]">Bolder gatherings.</span>
                   </p>
-                </div>
-              </div>
-
-              <div className="absolute -bottom-1 -left-3 z-10 hidden w-[44%] overflow-hidden rounded-[1.7rem] border-8 border-[var(--background)] bg-white shadow-[0_24px_60px_rgba(31,35,31,.18)] sm:block lg:-left-8">
-                <div className="relative aspect-[4/3]">
-                  <Image src="/food/island-curry-chicken.jpg" alt="Illustrative Jamaican curry chicken presentation" fill sizes="28vw" className="object-cover" />
-                </div>
-                <div className="flex items-center justify-between px-4 py-3">
-                  <span className="text-sm font-black">Jamaican Curry</span>
-                  <span className="text-[10px] font-black uppercase tracking-[.12em] text-[var(--brand-deep)]">This week</span>
                 </div>
               </div>
 
