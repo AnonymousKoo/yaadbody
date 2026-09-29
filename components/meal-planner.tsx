@@ -90,7 +90,7 @@ export function MealPlanner() {
             <button
               key={option.id}
               onClick={() => { setPlanId(option.id); setCounts({}); setReviewing(false); }}
-              className={`rounded-2xl border px-4 py-4 text-left transition ${planId === option.id ? "border-[var(--brand)] bg-[#fff0e8]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[#c5b9a8]"}`}
+              className={`rounded-2xl border px-4 py-4 text-left transition ${planId === option.id ? "border-[var(--brand)] bg-[#ffe7d6]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[#c5b9a8]"}`}
             >
               <span className="block text-2xl font-black">{option.mealCount}</span>
               <span className="text-xs font-bold uppercase tracking-[.12em] text-[var(--ink-muted)]">meals / week</span>
@@ -118,7 +118,7 @@ export function MealPlanner() {
             const count = counts[item.id] ?? 0;
             const copy = mealCopy(meal);
             return (
-              <article key={item.id} className="overflow-hidden rounded-[1.6rem] border border-[var(--line)] bg-[var(--surface)] shadow-[0_20px_55px_rgba(60,45,25,.07)]">
+              <article key={item.id} className="overflow-hidden meal-card">
                 <div className="relative min-h-56 overflow-hidden text-white">
                   <Image src={mealImageById[meal.id]} alt={`Illustrative ${copy.name} presentation`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
@@ -150,7 +150,7 @@ export function MealPlanner() {
         </div>
       </div>
 
-      <aside className="h-fit rounded-[1.6rem] bg-[var(--leaf-deep)] p-6 text-white lg:sticky lg:top-6">
+      <aside className="h-fit rounded-[2rem] bg-[var(--leaf-deep)] p-6 text-white shadow-[0_24px_70px_rgba(16,45,32,.22)] lg:sticky lg:top-6">
         <p className="text-xs font-black uppercase tracking-[.16em] text-[var(--warm)]">Your week</p>
         <div className="mt-4 flex items-end justify-between">
           <p className="text-4xl font-black tracking-[-.06em]">{selectedCount}/{plan.mealCount}</p>
