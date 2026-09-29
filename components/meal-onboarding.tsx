@@ -49,7 +49,7 @@ export function MealOnboarding() {
   return <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
     <div className="space-y-8">
       <Question title="1. What do you want from your meals?">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{goals.map((option) => <button key={option.id} onClick={() => setGoal(option.id)} className={`rounded-2xl border p-4 text-left ${goal === option.id ? "border-[var(--brand)] bg-[#fff0e8]" : "border-[var(--line)] bg-white"}`}><span className="font-black">{option.label}</span><span className="mt-1 block text-sm text-[var(--ink-muted)]">{option.copy}</span></button>)}</div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{goals.map((option) => <button key={option.id} onClick={() => setGoal(option.id)} className={`rounded-2xl border p-4 text-left ${goal === option.id ? "border-[var(--brand)] bg-[#ffe7d6]" : "border-[var(--line)] bg-white"}`}><span className="font-black">{option.label}</span><span className="mt-1 block text-sm text-[var(--ink-muted)]">{option.copy}</span></button>)}</div>
       </Question>
       <Question title="2. How much of the week should YaadBody handle?">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{plans.map((plan) => <button key={plan.id} onClick={() => setDesiredMealCount(plan.mealCount)} className={`rounded-2xl border p-4 ${desiredMealCount === plan.mealCount ? "border-[var(--leaf-deep)] bg-[var(--leaf-deep)] text-white" : "border-[var(--line)] bg-white"}`}><span className="block text-2xl font-black">{plan.mealCount}</span><span className="text-xs font-bold uppercase tracking-[.1em]">meals</span></button>)}</div>
@@ -65,10 +65,10 @@ export function MealOnboarding() {
         <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">Selecting an allergen hides recipes that list it. YaadBody is not represented as an allergen-free kitchen, and cross-contact may be possible.</p>
       </Question>
       <Question title="6. How do you want to receive the meals?">
-        <div className="grid gap-3 sm:grid-cols-2">{(["pickup", "delivery"] as FulfillmentMethod[]).map((method) => <button key={method} onClick={() => setFulfillmentMethod(method)} className={`rounded-2xl border p-5 text-left capitalize ${fulfillmentMethod === method ? "border-[var(--brand)] bg-[#fff0e8]" : "border-[var(--line)] bg-white"}`}><span className="font-black">{method}</span><span className="mt-1 block text-sm text-[var(--ink-muted)]">{method === "pickup" ? "Collect from a YaadBody pickup point." : "Delivery availability and fee depend on your location."}</span></button>)}</div>
+        <div className="grid gap-3 sm:grid-cols-2">{(["pickup", "delivery"] as FulfillmentMethod[]).map((method) => <button key={method} onClick={() => setFulfillmentMethod(method)} className={`rounded-2xl border p-5 text-left capitalize ${fulfillmentMethod === method ? "border-[var(--brand)] bg-[#ffe7d6]" : "border-[var(--line)] bg-white"}`}><span className="font-black">{method}</span><span className="mt-1 block text-sm text-[var(--ink-muted)]">{method === "pickup" ? "Collect from a YaadBody pickup point." : "Delivery availability and fee depend on your location."}</span></button>)}</div>
       </Question>
     </div>
-    <aside className="h-fit rounded-[1.7rem] bg-[var(--leaf-deep)] p-6 text-white lg:sticky lg:top-6">
+    <aside className="h-fit rounded-[2rem] bg-[var(--leaf-deep)] p-6 text-white shadow-[0_24px_70px_rgba(16,45,32,.22)] lg:sticky lg:top-6">
       <p className="text-xs font-black uppercase tracking-[.16em] text-[var(--warm)]">Your starting recommendation</p>
       <p className="mt-4 text-4xl font-black tracking-[-.055em]">{recommendation.plan.mealCount} {recommendation.portionSize}</p>
       <p className="mt-3 text-sm leading-6 text-white/70">{recommendation.reason}</p>
@@ -79,6 +79,6 @@ export function MealOnboarding() {
   </div>;
 }
 
-function Question({ title, optional, children }: { title: string; optional?: boolean; children: React.ReactNode }) { return <section className="rounded-[1.6rem] border border-[var(--line)] bg-[var(--surface)] p-6"><div className="mb-5 flex items-center gap-3"><h2 className="text-xl font-black tracking-[-.03em]">{title}</h2>{optional && <span className="rounded-full bg-[var(--surface-soft)] px-2 py-1 text-[10px] font-black uppercase tracking-[.1em] text-[var(--ink-muted)]">Optional</span>}</div>{children}</section>; }
+function Question({ title, optional, children }: { title: string; optional?: boolean; children: React.ReactNode }) { return <section className="yb-card p-6"><div className="mb-5 flex items-center gap-3"><h2 className="text-xl font-black tracking-[-.03em]">{title}</h2>{optional && <span className="rounded-full bg-[var(--surface-soft)] px-2 py-1 text-[10px] font-black uppercase tracking-[.1em] text-[var(--ink-muted)]">Optional</span>}</div>{children}</section>; }
 function Toggle({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button onClick={onClick} className={`rounded-full border px-4 py-2 text-sm font-bold ${active ? "border-[var(--leaf-deep)] bg-[var(--leaf-deep)] text-white" : "border-[var(--line)] bg-white"}`}>{children}</button>; }
 function Row({ label, value }: { label: string; value: string }) { return <div className="flex items-center justify-between gap-4"><dt className="text-white/55">{label}</dt><dd className="font-black capitalize">{value}</dd></div>; }
