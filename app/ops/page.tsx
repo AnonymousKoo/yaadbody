@@ -13,7 +13,7 @@ export default function OpsPage() {
   const componentMap = new Map(components.map((component) => [component.id, component]));
   const mealCount = demoOrders.flatMap((order) => order.selections).reduce((sum, selection) => sum + selection.quantity, 0);
 
-  return <><SiteHeader /><main className="mx-auto max-w-[var(--page-width)] px-5 py-10 lg:px-8">
+  return <><SiteHeader /><main className="ops-shell mx-auto max-w-[var(--page-width)] px-5 py-10 lg:px-8">
     <div className="flex flex-wrap items-end justify-between gap-5"><div><p className="eyebrow">Internal prototype</p><h1 className="mt-3 text-4xl font-black tracking-[-.06em] sm:text-5xl">Kitchen control board</h1><p className="mt-3 text-[var(--ink-muted)]">Demo demand, waste, and production signals. No production data is connected.</p></div><div className="flex flex-wrap items-center gap-3"><Link href="/ops/recipes" className="rounded-full bg-[var(--leaf-deep)] px-4 py-2 text-xs font-black uppercase tracking-[.12em] text-white">Validate a batch</Link><span className="rounded-full bg-[#fff0e8] px-4 py-2 text-xs font-black uppercase tracking-[.12em] text-[var(--brand-deep)]">Local fixture data</span></div></div>
     <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Locked meals" value={mealCount.toString()} detail="Across demo orders" /><Metric label="Waste" value={`$${(waste.totalWasteCents / 100).toFixed(2)}`} detail={`${waste.wasteRatePercent}% of demo food spend`} /><Metric label="Avoidable waste" value={`$${(waste.avoidableWasteCents / 100).toFixed(2)}`} detail="Production overage" /><Metric label="Menu items" value={weeklyMenu.length.toString()} detail="Core + rotating" /></section>
     <section className="mt-8 grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
