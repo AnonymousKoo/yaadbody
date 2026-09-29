@@ -1,5 +1,5 @@
-import Image from "next/image";import Link from "next/link";import dynamic from "next/dynamic";import {meals} from "@/fixtures/demo";import {SiteHeader} from "@/components/site-header";import {SiteFooter} from "@/components/site-footer";import {Reveal} from "@/components/reveal";
-const FlavorScene=dynamic(()=>import("@/components/flavor-scene").then(m=>m.FlavorScene),{ssr:false});
+import Image from "next/image";import Link from "next/link";import {meals} from "@/fixtures/demo";import {SiteHeader} from "@/components/site-header";import {SiteFooter} from "@/components/site-footer";import {Reveal} from "@/components/reveal";
+import {FlavorScene} from "@/components/flavor-scene";
 const ways=[["Meal Prep","Your week, handled.","Fresh meals built around your goal and the amount of life you want back.","/start","/food/yaad-jerk-chicken.jpg"],["Party Trays","Pull up with flavor.","Feed the table without turning a gathering into a logistics project.","/catering","/food/party-tray.jpg"],["Catering","Make the food memorable.","Drop-off to higher-touch service for moments that deserve more.","/catering","/food/catering-spread.jpg"]] as const;
 const imgs:Record<string,string>={"yaad-jerk-chicken":"/food/yaad-jerk-chicken.jpg","island-curry-chicken":"/food/island-curry-chicken.jpg","garlic-shrimp-bowl":"/food/garlic-shrimp-bowl.jpg","beef-sweet-potato":"/food/beef-sweet-potato.jpg","escovitch-cod-plate":"/food/escovitch-cod-plate.jpg"};
 export default function Home(){return <><SiteHeader/><main className="overflow-hidden">
