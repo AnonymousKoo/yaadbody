@@ -19,3 +19,12 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1000;o
 @keyframes floaty{0%,100%{transform:translate3d(0,0,0) rotate(-2deg)}50%{transform:translate3d(0,-12px,0) rotate(2deg)}}.floaty{animation:floaty 7s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media(max-width:640px){.display{letter-spacing:-.06em}}
+
+/* Mobile-first polish */
+@media (max-width: 767px){
+  html{scroll-padding-top:104px}
+  body{overflow-x:hidden}
+  .premium-button{min-height:52px;justify-content:center}
+  .premium-link{display:inline-flex;min-height:44px;align-items:center}
+  .yb-card,.meal-card{border-radius:1.5rem}
+}
