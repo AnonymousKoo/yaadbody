@@ -1,13 +1,2 @@
-import type { Metadata } from "next";
-import { MealOnboarding } from "@/components/meal-onboarding";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-
-export const metadata: Metadata = { title: "Find My Meal Plan" };
-
-export default function StartPage() {
-  return <><SiteHeader /><main className="mx-auto max-w-[var(--page-width)] px-5 py-12 lg:px-8 lg:py-16">
-    <div className="max-w-3xl"><p className="eyebrow">Tell us what matters</p><h1 className="text-balance mt-4 text-5xl font-black tracking-[-.065em] sm:text-6xl">We standardize the food. You choose the outcome.</h1><p className="mt-5 text-lg leading-8 text-[var(--ink-muted)]">A short intake recommends a starting plan and portion without turning every customer into a custom kitchen order.</p></div>
-    <div className="mt-10"><MealOnboarding /></div>
-  </main><SiteFooter /></>;
-}
+import type {Metadata} from "next";import {MealOnboarding} from "@/components/meal-onboarding";import {SiteFooter} from "@/components/site-footer";import {SiteHeader} from "@/components/site-header";import {Reveal} from "@/components/reveal";
+export const metadata:Metadata={title:"Find My Meal Plan"};export default function StartPage(){return <><SiteHeader/><main><section className="bg-[radial-gradient(circle_at_85%_20%,#f6c65d55,transparent_25%),linear-gradient(135deg,#f4eadc,#fffaf1)]"><div className="mx-auto max-w-[var(--page-width)] px-5 py-16 lg:px-8 lg:py-24"><Reveal><p className="eyebrow">Build your YaadBody week</p><h1 className="display mt-5 max-w-[11ch] text-6xl sm:text-8xl">Tell us the outcome. We&apos;ll shape the starting point.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--ink-muted)]">Six quick choices. No fake personalization, no hundred-option menu, no turning dinner into homework.</p></Reveal></div></section><section className="mx-auto max-w-[var(--page-width)] px-5 py-12 lg:px-8 lg:py-16"><MealOnboarding/></section></main><SiteFooter/></>}
