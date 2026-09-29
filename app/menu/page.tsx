@@ -1,14 +1,2 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { MealPlanner } from "@/components/meal-planner";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-
-export const metadata: Metadata = { title: "Weekly Menu" };
-
-export default function MenuPage() {
-  return <><SiteHeader /><main className="mx-auto max-w-[var(--page-width)] px-5 py-12 lg:px-8 lg:py-16">
-    <div className="max-w-3xl"><p className="eyebrow">This week&apos;s menu</p><h1 className="text-balance mt-4 text-5xl font-black tracking-[-.065em] sm:text-6xl">Tell us how much of the week you want handled.</h1><p className="mt-5 text-lg leading-8 text-[var(--ink-muted)]">Choose a plan, choose a portion, then fill your week with the meals that fit you best.</p></div>
-    <div className="mt-10"><Suspense fallback={<div className="rounded-2xl border border-[var(--line)] bg-white p-6">Loading weekly menu…</div>}><MealPlanner /></Suspense></div>
-  </main><SiteFooter /></>;
-}
+import type {Metadata} from "next";import {Suspense} from "react";import Image from "next/image";import {MealPlanner} from "@/components/meal-planner";import {SiteFooter} from "@/components/site-footer";import {SiteHeader} from "@/components/site-header";import {Reveal} from "@/components/reveal";
+export const metadata:Metadata={title:"Weekly Menu"};export default function MenuPage(){return <><SiteHeader/><main><section className="relative overflow-hidden bg-[#0b2118] text-white"><Image src="/food/garlic-shrimp-bowl.jpg" alt="" fill className="object-cover opacity-25" priority/><div className="absolute inset-0 bg-gradient-to-r from-[#0b2118] via-[#0b2118]/90 to-transparent"/><div className="relative mx-auto max-w-[var(--page-width)] px-5 py-20 lg:px-8 lg:py-28"><Reveal><p className="eyebrow eyebrow-warm">This week&apos;s menu</p><h1 className="display mt-5 max-w-[11ch] text-6xl sm:text-8xl">Build a week you&apos;ll actually eat.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-white/65">Pick the amount of life you want handled, choose your portion, then fill the week with food you want to come back to.</p></Reveal></div></section><section className="mx-auto max-w-[var(--page-width)] px-5 py-12 lg:px-8 lg:py-16"><Suspense fallback={<div className="yb-card p-6">Loading weekly menu…</div>}><MealPlanner/></Suspense></section></main><SiteFooter/></>}
